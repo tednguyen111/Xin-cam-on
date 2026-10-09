@@ -842,6 +842,12 @@ Ngô Thanh J</textarea>
       ✅ Oke, bắt đầu!
     </button>
 
+    <!-- Nút Share -->
+    <button type="button" class="btn-secondary" id="shareBtn" style="width:100%; margin-top:0.5rem; text-align:center; padding:0.75rem; font-size:0.9rem;">
+      🔗 Copy link chia sẻ (giữ tên)
+    </button>
+    <div id="shareFeedback" style="font-size:0.75rem; color:var(--gold-light); text-align:center; height:1.2rem; transition: opacity 0.3s;"></div>
+
     <!-- Tùy chọn tải ảnh mặt nhân vật (images(1).jpg) hoặc bow.gif từ máy nếu muốn -->
     <div class="form-group" style="padding-top: 0.6rem; border-top: 1px solid rgba(240,192,64,0.16);">
       <label class="form-label">
@@ -1809,6 +1815,16 @@ Ngô Thanh J</textarea>
       // Auto-open drawer when user first lands on the page
       setTimeout(() => toggleDrawer(true), 600);
 
+      // Read URL params on load — pre-fill name if ?name= present
+      (function loadFromParams() {
+        const params = new URLSearchParams(window.location.search);
+        const nameParam = params.get('name');
+        if (nameParam) {
+          inputUserName.value = nameParam;
+          userNameDisplay.textContent = nameParam;
+        }
+      })();
+
       /* ========================================================================
          5. HTML5 AUDIO PLAYER — Default track + upload replace, play on Oke
          ======================================================================== */
@@ -1858,12 +1874,30 @@ Ngô Thanh J</textarea>
         audio._trackName = file.name.replace(/\.[^.]+$/, '');
       });
 
-      // Oke button — đóng drawer + phát nhạc
+      // Oke button — phát nhạc TRƯỚC, đóng drawer SAU (browser gesture requirement)
       okBtn.addEventListener('click', function () {
-        toggleDrawer(false);
         if (!isMusicPlaying) {
           playAudio(audio._trackName || 'Cảm ơn người đã thức cùng tôi');
         }
+        setTimeout(() => toggleDrawer(false), 80);
+      });
+
+      // Share button — copy URL with current name as param
+      const shareBtn      = document.getElementById('shareBtn');
+      const shareFeedback = document.getElementById('shareFeedback');
+
+      shareBtn.addEventListener('click', function () {
+        const name = document.getElementById('inputUserName').value.trim();
+        const url  = new URL(window.location.href.split('?')[0]);
+        if (name) url.searchParams.set('name', name);
+        navigator.clipboard.writeText(url.toString()).then(() => {
+          shareFeedback.textContent = '✅ Đã copy link!';
+          shareFeedback.style.opacity = '1';
+          setTimeout(() => { shareFeedback.style.opacity = '0'; }, 2500);
+        }).catch(() => {
+          // fallback for browsers that block clipboard
+          prompt('Copy link này:', url.toString());
+        });
       });
 
     })();
