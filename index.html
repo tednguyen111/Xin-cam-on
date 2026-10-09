@@ -831,32 +831,16 @@ Ngô Thanh J</textarea>
         <span>4. Nhạc nền</span>
         <span class="form-hint">Mặc định: Phụng Khánh Linh</span>
       </label>
-
-      <!-- Upload nhạc thay thế -->
       <label for="customAudioInput" class="btn-secondary" style="text-align:center; display:block; cursor:pointer;">
         🎵 Thay nhạc khác (MP3 / M4A...)
       </label>
       <input type="file" id="customAudioInput" accept="audio/*" style="display:none;" />
-
-      <!-- Loop segment controls -->
-      <div style="margin-top:0.85rem;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
-          <span style="font-size:0.78rem; color:var(--gold-light); font-weight:600;">Chọn đoạn 30s để loop</span>
-          <span id="loopRangeLabel" style="font-size:0.78rem; color:var(--text-muted);">0:00 → 0:30</span>
-        </div>
-        <input type="range" id="loopStartSlider" min="0" max="100" value="0" step="1"
-          style="width:100%; accent-color:var(--gold-primary); cursor:pointer;" />
-        <div style="display:flex; justify-content:space-between; margin-top:0.3rem;">
-          <span style="font-size:0.7rem; color:var(--text-muted);" id="sliderMinLabel">0:00</span>
-          <span style="font-size:0.7rem; color:var(--text-muted);" id="sliderMaxLabel">0:00</span>
-        </div>
-      </div>
-
-      <!-- Play / Pause -->
-      <button type="button" class="btn-gold" id="toggleAudioBtn" style="width:100%; margin-top:0.7rem;">
-        ▶ Phát nhạc
-      </button>
     </div>
+
+    <!-- Nút Oke -->
+    <button type="button" class="btn-gold" id="okBtn" style="width:100%; margin-top:0.5rem; font-size:1rem; padding: 0.9rem;">
+      ✅ Oke, bắt đầu!
+    </button>
 
     <!-- Tùy chọn tải ảnh mặt nhân vật (images(1).jpg) hoặc bow.gif từ máy nếu muốn -->
     <div class="form-group" style="padding-top: 0.6rem; border-top: 1px solid rgba(240,192,64,0.16);">
@@ -1826,74 +1810,28 @@ Ngô Thanh J</textarea>
       setTimeout(() => toggleDrawer(true), 600);
 
       /* ========================================================================
-         5. HTML5 AUDIO PLAYER — Default track + upload replace + 30s loop
+         5. HTML5 AUDIO PLAYER — Default track + upload replace, play on Oke
          ======================================================================== */
       const DEFAULT_TRACK = 'cam-on-nguoi-da-thuc-cung-toi-phung-khanh-linh-official-lyrics-vid_8Sv0TSiR.mp3';
-      const LOOP_DURATION = 30; // seconds
 
       const audio = new Audio(DEFAULT_TRACK);
-      audio.loop = false;
+      audio.loop = true;
       audio.volume = 0.85;
 
       const musicBar        = document.getElementById('musicBar');
       const musicToggleBtn  = document.getElementById('musicToggleBtn');
       const musicTrackLabel = document.getElementById('musicTrackLabel');
-      const toggleAudioBtn  = document.getElementById('toggleAudioBtn');
       const customAudioInput = document.getElementById('customAudioInput');
-      const loopStartSlider  = document.getElementById('loopStartSlider');
-      const loopRangeLabel   = document.getElementById('loopRangeLabel');
-      const sliderMinLabel   = document.getElementById('sliderMinLabel');
-      const sliderMaxLabel   = document.getElementById('sliderMaxLabel');
+      const okBtn           = document.getElementById('okBtn');
 
       let isMusicPlaying = false;
-      let loopStart = 0;
 
-      function fmtTime(sec) {
-        const s = Math.floor(sec);
-        return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-      }
-
-      // Update slider labels once audio metadata loads
-      audio.addEventListener('loadedmetadata', function () {
-        const dur = audio.duration;
-        loopStartSlider.max = Math.max(0, Math.floor(dur - LOOP_DURATION));
-        sliderMinLabel.textContent = '0:00';
-        sliderMaxLabel.textContent = fmtTime(Math.max(0, dur - LOOP_DURATION));
-        updateLoopLabel();
-      });
-
-      function updateLoopLabel() {
-        const end = Math.min(loopStart + LOOP_DURATION, audio.duration || loopStart + LOOP_DURATION);
-        loopRangeLabel.textContent = `${fmtTime(loopStart)} → ${fmtTime(end)}`;
-      }
-
-      loopStartSlider.addEventListener('input', function () {
-        loopStart = Number(this.value);
-        updateLoopLabel();
-        if (isMusicPlaying) {
-          audio.currentTime = loopStart;
-        }
-      });
-
-      // Loop: when playback reaches loopStart + 30s, jump back to loopStart
-      audio.addEventListener('timeupdate', function () {
-        if (audio.currentTime >= loopStart + LOOP_DURATION) {
-          audio.currentTime = loopStart;
-        }
-      });
-
-      function showMusicBar(trackName) {
-        musicTrackLabel.textContent = trackName;
-        musicBar.classList.add('visible', 'playing');
-        musicToggleBtn.textContent = '⏸ Tạm dừng';
-        toggleAudioBtn.textContent = '⏸ Tạm dừng';
-      }
-
-      function playAudio() {
-        audio.currentTime = loopStart;
+      function playAudio(trackName) {
         audio.play().then(() => {
           isMusicPlaying = true;
-          showMusicBar(audio._trackName || 'Cảm ơn người đã thức cùng tôi');
+          musicTrackLabel.textContent = trackName || 'Cảm ơn người đã thức cùng tôi';
+          musicBar.classList.add('visible', 'playing');
+          musicToggleBtn.textContent = '⏸ Tạm dừng';
         }).catch(() => {});
       }
 
@@ -1902,45 +1840,31 @@ Ngô Thanh J</textarea>
         isMusicPlaying = false;
         musicBar.classList.remove('playing');
         musicToggleBtn.textContent = '▶ Phát nhạc';
-        toggleAudioBtn.textContent = '▶ Phát nhạc';
       }
 
-      // Drawer play/pause button
-      toggleAudioBtn.addEventListener('click', function () {
-        if (isMusicPlaying) pauseAudio(); else playAudio();
-      });
-
-      // Floating bar play/pause button
+      // Floating bar toggle
       musicToggleBtn.addEventListener('click', function () {
         if (isMusicPlaying) pauseAudio(); else playAudio();
       });
 
-      // Upload custom audio file
+      // Upload custom audio
       customAudioInput.addEventListener('change', function (e) {
         const file = e.target.files && e.target.files[0];
         if (!file) return;
-        const url = URL.createObjectURL(file);
         audio.pause();
-        audio.src = url;
-        audio._trackName = file.name.replace(/\.[^.]+$/, '');
-        loopStart = 0;
-        loopStartSlider.value = 0;
+        audio.src = URL.createObjectURL(file);
         audio.load();
-        audio.addEventListener('loadedmetadata', function onMeta() {
-          audio.removeEventListener('loadedmetadata', onMeta);
-          playAudio();
-        });
-        musicBar.classList.add('visible');
+        // Tên file hiển thị, bỏ extension
+        audio._trackName = file.name.replace(/\.[^.]+$/, '');
       });
 
-      // Auto-play default track on first user interaction (browser policy)
-      document.addEventListener('click', function startDefault() {
-        if (!isMusicPlaying && audio.src.includes(DEFAULT_TRACK.split('/').pop())) {
-          audio._trackName = 'Cảm ơn người đã thức cùng tôi';
-          playAudio();
+      // Oke button — đóng drawer + phát nhạc
+      okBtn.addEventListener('click', function () {
+        toggleDrawer(false);
+        if (!isMusicPlaying) {
+          playAudio(audio._trackName || 'Cảm ơn người đã thức cùng tôi');
         }
-        document.removeEventListener('click', startDefault);
-      }, { once: true });
+      });
 
     })();
   </script>
