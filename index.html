@@ -778,7 +778,7 @@
 
   <aside class="settings-drawer" id="settingsDrawer" aria-label="Bảng tùy chỉnh lời cảm ơn">
     <div class="drawer-header">
-      <h3 class="drawer-title">✨ Tùy Chỉnh Lời Cảm Ơn</h3>
+      <h3 class="drawer-title">Tùy Chỉnh Lời Cảm Ơn</h3>
       <button type="button" class="drawer-close" id="closeSettingsBtn" aria-label="Đóng">✕</button>
     </div>
 
@@ -833,19 +833,19 @@
         <span class="form-hint">Mặc định: Phụng Khánh Linh</span>
       </label>
       <label for="customAudioInput" class="btn-secondary" style="text-align:center; display:block; cursor:pointer;">
-        🎵 Thay nhạc khác (MP3 / M4A...)
+        Thay nhạc khác (MP3 / M4A...)
       </label>
       <input type="file" id="customAudioInput" accept="audio/*" style="display:none;" />
     </div>
 
     <!-- Nút Oke -->
-    <button type="button" class="btn-gold" id="okBtn" style="width:100%; margin-top:0.5rem; font-size:1rem; padding: 0.9rem;">
-      ✅ Oke, bắt đầu!
+    <button type="button" class="btn-gold" id="okBtn" style="width:100%; margin-top:1.2rem; font-size:1.1rem; padding: 1rem; letter-spacing:0.05em; box-shadow: 0 0 28px rgba(240,192,64,0.45);">
+      Bắt đầu
     </button>
 
     <!-- Nút Share -->
     <button type="button" class="btn-secondary" id="shareBtn" style="width:100%; margin-top:0.5rem; text-align:center; padding:0.75rem; font-size:0.9rem;">
-      🔗 Copy link chia sẻ (giữ tên)
+      Copy link chia sẻ
     </button>
     <div id="shareFeedback" style="font-size:0.75rem; color:var(--gold-light); text-align:center; height:1.2rem; transition: opacity 0.3s;"></div>
 
@@ -859,12 +859,12 @@
       </label>
       <div style="display: flex; gap: 8px; flex-wrap: wrap;">
         <label for="customFaceInput" class="btn-secondary" style="flex: 1; text-align: center;">
-          🧢 Đổi ảnh mặt 3D
+          Đổi ảnh nhân vật
         </label>
         <input type="file" id="customFaceInput" accept="image/*" style="display: none;" />
 
         <label for="customGifInput" class="btn-secondary" style="flex: 1; text-align: center;">
-          🎞️ Dùng file bow.gif
+          Dùng file GIF
         </label>
         <input type="file" id="customGifInput" accept="image/gif,image/*" style="display: none;" />
       </div>
@@ -938,19 +938,13 @@
         'Ân Nhân Vĩ Đại',
         'Nhà Tài Trợ Tinh Thần',
         'Người Truyền Cảm Hứng',
-        'Cố Vấn Tối Cao',
         'Đồng Đội Bất Diệt',
-        'Ngôi Sao Đồng Hành',
-        'Hậu Phương Vững Chắc',
-        'Tri Kỷ Vượt Thời Gian',
-        'Chuyên Gia Cứu Net',
         'Thiên Thần Hộ Mệnh'
       ];
 
       const DEFAULT_NAMES = [
-        'Nguyễn Văn A', 'Trần Thị B', 'Lê Minh C', 'Phạm Thu D',
-        'Hoàng Quốc E', 'Đặng Thị F', 'Bùi Văn G', 'Vũ Thị H',
-        'Đỗ Minh I', 'Ngô Thanh J'
+        'Nguyễn Văn A', 'Trần Thị B', 'Lê Minh C',
+        'Phạm Thu D', 'Hoàng Quốc E'
       ];
 
       const STAGGER_CLASSES = ['stagger-center', 'stagger-left', 'stagger-center', 'stagger-right'];
