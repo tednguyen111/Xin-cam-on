@@ -1,0 +1,1885 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cinematic Thank You & Overdrive 3D Tribute</title>
+  <meta name="description" content="A cinematic Hollywood-style Thank You tribute page with smooth scrolling end-credits, SoundCloud background music, and a hilarious escalating 3D bowing character animation." />
+  <meta property="og:title" content="Cinematic Thank You & Overdrive 3D Tribute" />
+  <meta property="og:description" content="A cinematic Hollywood-style Thank You tribute page with smooth scrolling end-credits, SoundCloud background music, and a hilarious escalating 3D bowing character animation." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <!-- Google Fonts: Playfair Display & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ==========================================================================
+       1. DESIGN TOKENS & RESET
+       ========================================================================== */
+    :root {
+      --bg-left: #080814;
+      --bg-right: #0d0d22;
+      --gold-primary: #f0c040;
+      --gold-light: #ffe484;
+      --gold-dark: #b3861b;
+      --gold-glow: rgba(240, 192, 64, 0.35);
+      --text-white: #f8f6f0;
+      --text-muted: rgba(248, 246, 240, 0.62);
+      --glass-bg: rgba(16, 17, 38, 0.82);
+      --glass-border: rgba(240, 192, 64, 0.25);
+      --font-serif: 'Playfair Display', Georgia, serif;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg-left);
+      color: var(--text-white);
+      font-family: var(--font-sans);
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+    }
+
+    /* ==========================================================================
+       2. STARFIELD CANVAS & AMBIENT LIGHTING
+       ========================================================================== */
+    #starfieldCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .ambient-spotlight {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2;
+      background:
+        radial-gradient(circle at 20% 45%, rgba(240, 192, 64, 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 70% 20%, rgba(120, 90, 235, 0.07) 0%, transparent 50%),
+        radial-gradient(circle at 75% 80%, rgba(240, 192, 64, 0.05) 0%, transparent 45%);
+    }
+
+    /* ==========================================================================
+       3. TWO-COLUMN SPLIT LAYOUT (40% LEFT / 60% RIGHT)
+       ========================================================================== */
+    .split-layout {
+      position: relative;
+      z-index: 3;
+      display: flex;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    /* --- LEFT PANEL (40%) --- */
+    .left-panel {
+      width: 40%;
+      height: 100%;
+      background: linear-gradient(160deg, #070712 0%, #0b0c1e 60%, #080814 100%);
+      border-right: 1px solid rgba(240, 192, 64, 0.16);
+      box-shadow: 12px 0 48px rgba(0, 0, 0, 0.65);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Theatrical top spotlight beam on left podium */
+    .podium-beam {
+      position: absolute;
+      top: -15%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 420px;
+      height: 75%;
+      background: conic-gradient(from 180deg at 50% 0%, transparent 32%, rgba(240, 192, 64, 0.12) 47%, rgba(255, 235, 160, 0.2) 50%, rgba(240, 192, 64, 0.12) 53%, transparent 68%);
+      filter: blur(22px);
+      pointer-events: none;
+    }
+
+    /* Clean Stage Container — ONLY the character, zero text overlays or phase buttons */
+    .stage-container {
+      position: relative;
+      width: 100%;
+      max-width: 410px;
+      height: 410px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 24px;
+      background: radial-gradient(circle at 50% 60%, rgba(240, 192, 64, 0.14) 0%, rgba(15, 16, 38, 0.65) 65%, rgba(8, 8, 20, 0.92) 100%);
+      border: 1px solid rgba(240, 192, 64, 0.25);
+      box-shadow:
+        0 24px 64px rgba(0, 0, 0, 0.78),
+        inset 0 0 45px rgba(240, 192, 64, 0.08);
+      margin-bottom: 1.65rem;
+      overflow: hidden;
+    }
+
+    /* 3D Character Canvas */
+    #bow3DCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      z-index: 2;
+      cursor: pointer;
+    }
+
+    /* User's bow.gif element — Zero CSS animation or transition on img itself so GIF never freezes */
+    #bowGifImg {
+      max-width: 90%;
+      max-height: 90%;
+      object-fit: contain;
+      border-radius: 14px;
+      z-index: 3;
+      display: none;
+    }
+
+    /* Stylized Podium / Name Plate below the character */
+    .podium-wrap {
+      position: relative;
+      z-index: 4;
+      text-align: center;
+      max-width: 92%;
+    }
+
+    .podium-plate {
+      position: relative;
+      display: inline-block;
+      padding: 0.9rem 2.4rem;
+      background: linear-gradient(180deg, rgba(28, 25, 48, 0.92) 0%, rgba(14, 13, 28, 0.96) 100%);
+      border: 1px solid rgba(240, 192, 64, 0.48);
+      border-radius: 14px;
+      box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.65),
+        0 0 25px rgba(240, 192, 64, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    }
+
+    .podium-plate::before,
+    .podium-plate::after {
+      content: "✦";
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--gold-primary);
+      font-size: 0.9rem;
+      opacity: 0.85;
+    }
+
+    .podium-plate::before { left: 14px; }
+    .podium-plate::after { right: 14px; }
+
+    #userNameDisplay {
+      font-family: var(--font-serif);
+      font-size: clamp(1.4rem, 2.3vw, 2.05rem);
+      font-weight: 700;
+      color: var(--gold-light);
+      text-shadow: 0 0 18px rgba(240, 192, 64, 0.55), 0 2px 4px rgba(0, 0, 0, 0.8);
+      letter-spacing: 0.03em;
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+
+    .name-fade-anim {
+      opacity: 0 !important;
+      transform: translateY(6px) scale(0.98) !important;
+    }
+
+    /* --- RIGHT PANEL (60%) --- */
+    .right-panel {
+      width: 60%;
+      height: 100%;
+      background: linear-gradient(180deg, #0d0e24 0%, #111332 50%, #0b0c1e 100%);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Fixed Grand Title Header at top of Right Panel */
+    .credits-header {
+      position: relative;
+      z-index: 10;
+      padding: 2.8rem 3rem 1.8rem;
+      text-align: center;
+      background: linear-gradient(180deg, rgba(13, 14, 36, 0.98) 0%, rgba(13, 14, 36, 0.86) 72%, transparent 100%);
+      flex-shrink: 0;
+    }
+
+    .oscar-crest {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.75rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--gold-primary);
+      margin-bottom: 0.6rem;
+      opacity: 0.9;
+    }
+
+    .oscar-crest span.line {
+      display: inline-block;
+      width: 36px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold-primary), transparent);
+    }
+
+    #pageTitleDisplay {
+      font-family: var(--font-serif);
+      font-size: clamp(1.75rem, 3vw, 2.75rem);
+      font-weight: 700;
+      line-height: 1.25;
+      max-width: 26ch;
+      margin: 0 auto;
+      text-wrap: balance;
+      background: linear-gradient(110deg, #fff6d6 0%, #f0c040 35%, #ffffff 50%, #f0c040 65%, #fff6d6 100%);
+      background-size: 220% auto;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: titleShimmer 6s linear infinite;
+      filter: drop-shadow(0 4px 20px rgba(240, 192, 64, 0.25));
+      transition: all 0.4s ease;
+    }
+
+    @keyframes titleShimmer {
+      0% { background-position: 0% center; }
+      100% { background-position: 220% center; }
+    }
+
+    /* Scrolling Credits Viewport with Top & Bottom Fade Mask */
+    .credits-viewport {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      overflow: hidden;
+      -webkit-mask-image: linear-gradient(
+        to bottom,
+        transparent 0%,
+        rgba(0, 0, 0, 0.25) 7%,
+        black 18%,
+        black 82%,
+        rgba(0, 0, 0, 0.25) 93%,
+        transparent 100%
+      );
+      mask-image: linear-gradient(
+        to bottom,
+        transparent 0%,
+        rgba(0, 0, 0, 0.25) 7%,
+        black 18%,
+        black 82%,
+        rgba(0, 0, 0, 0.25) 93%,
+        transparent 100%
+      );
+    }
+
+    /* GPU-Accelerated Scrolling Track */
+    .credits-track {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      will-change: transform;
+      transform: translate3d(0, 0, 0);
+      animation: creditsRoll var(--credits-duration, 28s) linear infinite;
+    }
+
+    @keyframes creditsRoll {
+      0% {
+        transform: translate3d(0, 0, 0);
+      }
+      100% {
+        transform: translate3d(0, -50%, 0);
+      }
+    }
+
+    .credits-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1rem 2rem 2rem;
+    }
+
+    .credit-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 1.15rem 0;
+      text-align: center;
+      transition: transform 0.3s ease;
+    }
+
+    .credit-item.stagger-left {
+      transform: translateX(-28px);
+    }
+    .credit-item.stagger-right {
+      transform: translateX(28px);
+    }
+    .credit-item.stagger-center {
+      transform: translateX(0);
+    }
+
+    .credit-role {
+      font-family: var(--font-sans);
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(240, 192, 64, 0.72);
+      margin-bottom: 0.28rem;
+    }
+
+    .credit-name {
+      font-family: var(--font-serif);
+      font-size: clamp(1.35rem, 2.1vw, 1.85rem);
+      font-weight: 600;
+      color: var(--text-white);
+      letter-spacing: 0.02em;
+      text-shadow: 0 2px 14px rgba(240, 192, 64, 0.22);
+    }
+
+    .credit-divider {
+      margin: 1.6rem 0;
+      color: rgba(240, 192, 64, 0.45);
+      font-size: 0.9rem;
+      letter-spacing: 0.6em;
+    }
+
+    /* ==========================================================================
+       4. FLOATING SETTINGS TRIGGER & SLIDE-IN GLASSMORPHISM DRAWER
+       ========================================================================== */
+    .settings-fab {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 50;
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(30, 32, 64, 0.92), rgba(14, 15, 34, 0.96));
+      border: 1px solid rgba(240, 192, 64, 0.5);
+      color: var(--gold-primary);
+      font-size: 1.45rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.65), 0 0 20px rgba(240, 192, 64, 0.25);
+      backdrop-filter: blur(12px);
+      transition: all 0.4s ease;
+    }
+
+    .settings-fab:hover {
+      transform: rotate(45deg) scale(1.08);
+      border-color: var(--gold-light);
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.8), 0 0 28px rgba(240, 192, 64, 0.45);
+    }
+
+    .drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      background: rgba(4, 4, 12, 0.55);
+      backdrop-filter: blur(3px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+
+    .drawer-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .settings-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      z-index: 45;
+      width: 100%;
+      max-width: 420px;
+      height: 100vh;
+      background: var(--glass-bg);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+      border-left: 1px solid var(--glass-border);
+      box-shadow: -20px 0 60px rgba(0, 0, 0, 0.75);
+      padding: 2rem 1.75rem 6rem;
+      overflow-y: auto;
+      transform: translate3d(105%, 0, 0);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      gap: 1.3rem;
+    }
+
+    .settings-drawer.open {
+      transform: translate3d(0, 0, 0);
+    }
+
+    .drawer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(240, 192, 64, 0.18);
+    }
+
+    .drawer-title {
+      font-family: var(--font-serif);
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--gold-light);
+    }
+
+    .drawer-close {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: var(--text-white);
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: all 0.25s ease;
+    }
+
+    .drawer-close:hover {
+      background: rgba(240, 192, 64, 0.2);
+      border-color: var(--gold-primary);
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+    }
+
+    .form-label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--gold-light);
+      letter-spacing: 0.02em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .form-hint {
+      font-size: 0.72rem;
+      font-weight: 400;
+      color: var(--text-muted);
+    }
+
+    .glass-input,
+    .glass-textarea {
+      width: 100%;
+      background: rgba(8, 9, 22, 0.68);
+      border: 1px solid rgba(240, 192, 64, 0.25);
+      border-radius: 10px;
+      padding: 0.75rem 0.95rem;
+      color: var(--text-white);
+      font-family: var(--font-sans);
+      font-size: 0.9rem;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    .glass-input:focus,
+    .glass-textarea:focus {
+      border-color: var(--gold-primary);
+      box-shadow: 0 0 0 3px rgba(240, 192, 64, 0.18);
+      background: rgba(12, 14, 32, 0.88);
+    }
+
+    .glass-textarea {
+      min-height: 145px;
+      resize: vertical;
+      line-height: 1.55;
+    }
+
+    .soundcloud-row {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .btn-gold {
+      background: linear-gradient(135deg, #f0c040 0%, #d49b1f 100%);
+      color: #080814;
+      font-family: var(--font-sans);
+      font-weight: 700;
+      font-size: 0.85rem;
+      border: none;
+      border-radius: 10px;
+      padding: 0.75rem 1.1rem;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(240, 192, 64, 0.3);
+    }
+
+    .btn-gold:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(240, 192, 64, 0.5);
+      filter: brightness(1.06);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.07);
+      color: var(--text-white);
+      border: 1px solid rgba(240, 192, 64, 0.28);
+      border-radius: 8px;
+      padding: 0.55rem 0.85rem;
+      font-size: 0.78rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(240, 192, 64, 0.16);
+      border-color: var(--gold-primary);
+    }
+
+    /* ==========================================================================
+       5. FLOATING MUSIC BAR (BOTTOM CENTER)
+       ========================================================================== */
+    .music-bar {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translate3d(-50%, 30px, 0);
+      z-index: 35;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 10px 20px;
+      border-radius: 999px;
+      background: rgba(12, 13, 30, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(240, 192, 64, 0.4);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.75), 0 0 24px rgba(240, 192, 64, 0.18);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.4s ease;
+    }
+
+    .music-bar.visible {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translate3d(-50%, 0, 0);
+    }
+
+    .music-note-icon {
+      color: var(--gold-primary);
+      font-size: 1.15rem;
+      animation: notePulse 1.6s ease-in-out infinite;
+    }
+
+    @keyframes notePulse {
+      0%, 100% { transform: scale(1); text-shadow: 0 0 8px var(--gold-glow); }
+      50% { transform: scale(1.22); text-shadow: 0 0 16px var(--gold-primary); }
+    }
+
+    /* 3 Animated Equalizer Bars */
+    .eq-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 16px;
+    }
+
+    .eq-bar {
+      width: 3px;
+      background: var(--gold-primary);
+      border-radius: 2px;
+      height: 4px;
+      transition: height 0.2s ease;
+    }
+
+    .music-bar.playing .eq-bar:nth-child(1) {
+      animation: eqBounce 0.75s ease-in-out infinite;
+    }
+    .music-bar.playing .eq-bar:nth-child(2) {
+      animation: eqBounce 0.55s ease-in-out infinite 0.15s;
+    }
+    .music-bar.playing .eq-bar:nth-child(3) {
+      animation: eqBounce 0.85s ease-in-out infinite 0.3s;
+    }
+
+    @keyframes eqBounce {
+      0%, 100% { height: 4px; }
+      50% { height: 16px; }
+    }
+
+    .music-label {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-white);
+      max-width: 190px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .music-toggle-btn {
+      background: rgba(240, 192, 64, 0.2);
+      border: 1px solid rgba(240, 192, 64, 0.5);
+      color: var(--gold-light);
+      font-family: var(--font-sans);
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .music-toggle-btn:hover {
+      background: var(--gold-primary);
+      color: #080814;
+    }
+
+    /* Hidden SoundCloud iframe container */
+    #scIframeContainer {
+      position: fixed;
+      width: 1px;
+      height: 1px;
+      bottom: -10px;
+      left: -10px;
+      opacity: 0.01;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    /* ==========================================================================
+       6. RESPONSIVE DESIGN (DESKTOP FIRST, CLEAN MOBILE STACK)
+       ========================================================================== */
+    @media (max-width: 900px) {
+      html, body {
+        overflow-y: auto;
+      }
+      .split-layout {
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+      }
+      .left-panel, .right-panel {
+        width: 100%;
+      }
+      .left-panel {
+        min-height: 540px;
+        border-right: none;
+        border-bottom: 1px solid rgba(240, 192, 64, 0.18);
+      }
+      .right-panel {
+        height: 75vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Background Starfield Canvas -->
+  <canvas id="starfieldCanvas"></canvas>
+  <div class="ambient-spotlight"></div>
+
+  <!-- Main Two-Column Split Layout -->
+  <main class="split-layout">
+    <!-- ==================== LEFT PANEL (40% WIDTH) ==================== -->
+    <section class="left-panel" aria-label="Tribute Character & Honoree">
+      <div class="podium-beam"></div>
+
+      <!-- Clean Visual Stage: ONLY the Character (zero phase badges or buttons) -->
+      <div class="stage-container" id="stageContainer">
+        <!-- 3D Hardware-Accelerated Canvas for the Funny Escalating Bowing Character -->
+        <canvas id="bow3DCanvas" width="410" height="410"></canvas>
+
+        <!-- Required bow.gif img with loading="eager", no CSS animations/transitions on img -->
+        <img
+          id="bowGifImg"
+          src="bow.gif"
+          alt="Thank You Character"
+          loading="eager"
+        />
+      </div>
+
+      <!-- Stylized Podium / Name Plate -->
+      <div class="podium-wrap">
+        <div class="podium-plate">
+          <h2 id="userNameDisplay">Người Hùng Thầm Lặng</h2>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== RIGHT PANEL (60% WIDTH) ==================== -->
+    <section class="right-panel" aria-label="Scrolling Thank You Credits">
+      <!-- Fixed Grand Title -->
+      <header class="credits-header">
+        <div class="oscar-crest">
+          <span class="line"></span>
+          <span>THE ACADEMY OF DEEP GRATITUDE</span>
+          <span class="line"></span>
+        </div>
+        <h1 id="pageTitleDisplay">Xin cảm ơn sự cống hiến của toàn thể</h1>
+      </header>
+
+      <!-- Buttery-Smooth Scrolling Credits Roll -->
+      <div class="credits-viewport">
+        <div class="credits-track" id="creditsTrack">
+          <!-- Group A and Group B (duplicated for seamless 0% -> -50% infinite loop) -->
+          <div class="credits-group" id="creditsGroupA"></div>
+          <div class="credits-group" id="creditsGroupB" aria-hidden="true"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ==================== FLOATING MUSIC PLAYER BAR ==================== -->
+  <div class="music-bar" id="musicBar" role="region" aria-label="Music Player">
+    <span class="music-note-icon">♪</span>
+    <div class="eq-bars" aria-hidden="true">
+      <span class="eq-bar"></span>
+      <span class="eq-bar"></span>
+      <span class="eq-bar"></span>
+    </div>
+    <span class="music-label" id="musicTrackLabel">Đang phát nhạc nền</span>
+    <button type="button" class="music-toggle-btn" id="musicToggleBtn">⏸ Tạm dừng</button>
+  </div>
+
+  <!-- Hidden SoundCloud Embed Container -->
+  <div id="scIframeContainer"></div>
+
+  <!-- ==================== SETTINGS BUTTON & SLIDE-IN DRAWER ==================== -->
+  <button type="button" class="settings-fab" id="openSettingsBtn" aria-label="Mở cài đặt tùy chỉnh" title="Tùy chỉnh nội dung & nhạc">
+    ⚙️
+  </button>
+
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+
+  <aside class="settings-drawer" id="settingsDrawer" aria-label="Bảng tùy chỉnh lời cảm ơn">
+    <div class="drawer-header">
+      <h3 class="drawer-title">✨ Tùy Chỉnh Lời Cảm Ơn</h3>
+      <button type="button" class="drawer-close" id="closeSettingsBtn" aria-label="Đóng">✕</button>
+    </div>
+
+    <!-- 1. Tên của bạn -->
+    <div class="form-group">
+      <label class="form-label" for="inputUserName">
+        <span>1. Tên của bạn</span>
+        <span class="form-hint">Hiển thị dưới nhân vật</span>
+      </label>
+      <input
+        type="text"
+        id="inputUserName"
+        class="glass-input"
+        placeholder="Ngôi Sao Của Chúng Ta"
+        value="Người Hùng Thầm Lặng"
+      />
+    </div>
+
+    <!-- 2. Tên những người bạn muốn cảm ơn -->
+    <div class="form-group">
+      <label class="form-label" for="inputNamesList">
+        <span>2. Tên những người bạn muốn cảm ơn</span>
+        <span class="form-hint">Mỗi tên 1 dòng</span>
+      </label>
+      <textarea id="inputNamesList" class="glass-textarea" placeholder="Nhập mỗi tên trên một dòng...">Nguyễn Văn A
+Trần Thị B
+Lê Minh C
+Phạm Thu D
+Hoàng Quốc E
+Đặng Thị F
+Bùi Văn G
+Vũ Thị H
+Đỗ Minh I
+Ngô Thanh J</textarea>
+    </div>
+
+    <!-- 3. Tiêu đề trang -->
+    <div class="form-group">
+      <label class="form-label" for="inputPageTitle">
+        <span>3. Tiêu đề trang</span>
+        <span class="form-hint">Cố định phía trên bảng tên</span>
+      </label>
+      <input
+        type="text"
+        id="inputPageTitle"
+        class="glass-input"
+        placeholder="Xin cảm ơn sự cống hiến của toàn thể"
+        value="Xin cảm ơn sự cống hiến của toàn thể"
+      />
+    </div>
+
+    <!-- 4. Link nhạc SoundCloud -->
+    <div class="form-group">
+      <label class="form-label" for="inputSoundCloudUrl">
+        <span>4. Link nhạc SoundCloud</span>
+        <span class="form-hint">Dán link track bất kỳ</span>
+      </label>
+      <div class="soundcloud-row">
+        <input
+          type="url"
+          id="inputSoundCloudUrl"
+          class="glass-input"
+          placeholder="https://soundcloud.com/..."
+          value="https://soundcloud.com/relaxdaily/relaxdaily-n-087"
+        />
+        <button type="button" class="btn-gold" id="playSoundCloudBtn">▶ Phát nhạc</button>
+      </div>
+    </div>
+
+    <!-- Tùy chọn tải ảnh mặt nhân vật (images(1).jpg) hoặc bow.gif từ máy nếu muốn -->
+    <div class="form-group" style="padding-top: 0.6rem; border-top: 1px solid rgba(240,192,64,0.16);">
+      <label class="form-label">
+        <span>Ảnh nhân vật tùy chọn</span>
+        <span class="form-hint">images(1).jpg / bow.gif</span>
+      </label>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <label for="customFaceInput" class="btn-secondary" style="flex: 1; text-align: center;">
+          🧢 Đổi ảnh mặt 3D
+        </label>
+        <input type="file" id="customFaceInput" accept="image/*" style="display: none;" />
+
+        <label for="customGifInput" class="btn-secondary" style="flex: 1; text-align: center;">
+          🎞️ Dùng file bow.gif
+        </label>
+        <input type="file" id="customGifInput" accept="image/gif,image/*" style="display: none;" />
+      </div>
+    </div>
+  </aside>
+
+  <!-- ==================== VANILLA JAVASCRIPT ENGINE ==================== -->
+  <script>
+    (function () {
+      'use strict';
+
+      /* ========================================================================
+         1. STARFIELD PARTICLE ENGINE (PURE CANVAS, ZERO LAG)
+         ======================================================================== */
+      const starCanvas = document.getElementById('starfieldCanvas');
+      const starCtx = starCanvas.getContext('2d');
+      let stars = [];
+
+      function resizeStarfield() {
+        starCanvas.width = window.innerWidth;
+        starCanvas.height = window.innerHeight;
+        initStars();
+      }
+
+      function initStars() {
+        const count = Math.min(130, Math.floor((starCanvas.width * starCanvas.height) / 11000));
+        stars = [];
+        for (let i = 0; i < count; i++) {
+          stars.push({
+            x: Math.random() * starCanvas.width,
+            y: Math.random() * starCanvas.height,
+            r: Math.random() * 1.6 + 0.4,
+            speedY: -(Math.random() * 0.22 + 0.05),
+            alpha: Math.random() * 0.75 + 0.2,
+            twinkleSpeed: Math.random() * 0.02 + 0.005,
+            twinklePhase: Math.random() * Math.PI * 2,
+            isGold: Math.random() < 0.32
+          });
+        }
+      }
+
+      function renderStarfield() {
+        starCtx.clearRect(0, 0, starCanvas.width, starCanvas.height);
+        for (let i = 0; i < stars.length; i++) {
+          const s = stars[i];
+          s.y += s.speedY;
+          s.twinklePhase += s.twinkleSpeed;
+          if (s.y < -5) {
+            s.y = starCanvas.height + 5;
+            s.x = Math.random() * starCanvas.width;
+          }
+          const currentAlpha = s.alpha * (0.65 + 0.35 * Math.sin(s.twinklePhase));
+          starCtx.beginPath();
+          starCtx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+          starCtx.fillStyle = s.isGold
+            ? `rgba(240, 192, 64, ${currentAlpha.toFixed(3)})`
+            : `rgba(245, 247, 255, ${currentAlpha.toFixed(3)})`;
+          starCtx.fill();
+        }
+        requestAnimationFrame(renderStarfield);
+      }
+
+      window.addEventListener('resize', resizeStarfield);
+      resizeStarfield();
+      requestAnimationFrame(renderStarfield);
+
+      /* ========================================================================
+         2. CREDITS ROLL GENERATOR & REAL-TIME INPUT BINDINGS
+         ======================================================================== */
+      const HONORIFIC_ROLES = [
+        'Ân Nhân Vĩ Đại',
+        'Nhà Tài Trợ Tinh Thần',
+        'Người Truyền Cảm Hứng',
+        'Cố Vấn Tối Cao',
+        'Đồng Đội Bất Diệt',
+        'Ngôi Sao Đồng Hành',
+        'Hậu Phương Vững Chắc',
+        'Tri Kỷ Vượt Thời Gian',
+        'Chuyên Gia Cứu Net',
+        'Thiên Thần Hộ Mệnh'
+      ];
+
+      const STAGGER_CLASSES = ['stagger-center', 'stagger-left', 'stagger-center', 'stagger-right'];
+
+      const creditsTrack = document.getElementById('creditsTrack');
+      const creditsGroupA = document.getElementById('creditsGroupA');
+      const creditsGroupB = document.getElementById('creditsGroupB');
+
+      function buildCreditsMarkup(namesArray) {
+        const cleanNames = namesArray
+          .map(n => n.trim())
+          .filter(Boolean);
+
+        const finalNames = cleanNames.length > 0 ? cleanNames : ['Những Người Bạn Tuyệt Vời'];
+
+        let expanded = [...finalNames];
+        while (expanded.length < 10) {
+          expanded = expanded.concat(finalNames);
+        }
+
+        let html = '';
+        expanded.forEach((personName, idx) => {
+          const role = HONORIFIC_ROLES[idx % HONORIFIC_ROLES.length];
+          const stagger = STAGGER_CLASSES[idx % STAGGER_CLASSES.length];
+          const escapedName = personName
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+
+          html += `
+            <div class="credit-item ${stagger}">
+              <span class="credit-role">${role}</span>
+              <span class="credit-name">${escapedName}</span>
+            </div>
+          `;
+        });
+
+        html += `<div class="credit-divider">✦ &nbsp; ✦ &nbsp; ✦</div>`;
+        return html;
+      }
+
+      function updateCreditsRoll(rawText) {
+        const lines = rawText.split(/\r?\n/);
+        const markup = buildCreditsMarkup(lines);
+        creditsGroupA.innerHTML = markup;
+        creditsGroupB.innerHTML = markup;
+
+        const count = Math.max(10, lines.filter(l => l.trim().length > 0).length);
+        const durationSeconds = Math.max(22, count * 2.7);
+        creditsTrack.style.setProperty('--credits-duration', `${durationSeconds}s`);
+      }
+
+      const inputNamesList = document.getElementById('inputNamesList');
+      updateCreditsRoll(inputNamesList.value);
+
+      inputNamesList.addEventListener('input', function (e) {
+        updateCreditsRoll(e.target.value);
+      });
+
+      const inputUserName = document.getElementById('inputUserName');
+      const userNameDisplay = document.getElementById('userNameDisplay');
+      let nameFadeTimeout = null;
+
+      inputUserName.addEventListener('input', function (e) {
+        const val = e.target.value.trim() || 'Ngôi Sao Của Chúng Ta';
+        userNameDisplay.classList.add('name-fade-anim');
+        clearTimeout(nameFadeTimeout);
+        nameFadeTimeout = setTimeout(() => {
+          userNameDisplay.textContent = val;
+          userNameDisplay.classList.remove('name-fade-anim');
+        }, 160);
+      });
+
+      const inputPageTitle = document.getElementById('inputPageTitle');
+      const pageTitleDisplay = document.getElementById('pageTitleDisplay');
+
+      inputPageTitle.addEventListener('input', function (e) {
+        const val = e.target.value.trim() || 'Xin cảm ơn sự cống hiến của toàn thể';
+        pageTitleDisplay.textContent = val;
+      });
+
+      /* ========================================================================
+         3. 3D CHARACTER FROM "images(1).jpg" (WHITE CAP, AVIATOR SUNGLASSES,
+            MUSTACHE, HEAVY GOLD CHAIN, WHITE GRAPHIC TEE, FULL-SLEEVE TATTOO)
+            DOING ESCALATING APOLOGY / THANK YOU BOWING & FLYING!
+         ======================================================================== */
+      const bowCanvas = document.getElementById('bow3DCanvas');
+      const ctx = bowCanvas.getContext('2d');
+      const bowGifImg = document.getElementById('bowGifImg');
+      let startTime = performance.now();
+
+      // Optional external image texture if user drops "images(1).jpg" or "images (1).jpg" in folder
+      const userFaceImg = new Image();
+      let hasLoadedFaceImg = false;
+      userFaceImg.onload = function () {
+        hasLoadedFaceImg = true;
+      };
+      // Try loading images(1).jpg automatically if placed in the same directory
+      userFaceImg.src = 'images(1).jpg';
+      userFaceImg.onerror = function () {
+        const fallbackImg = new Image();
+        fallbackImg.onload = function () {
+          userFaceImg.src = fallbackImg.src;
+          hasLoadedFaceImg = true;
+        };
+        fallbackImg.src = 'images (1).jpg';
+      };
+
+      // Allow user to pick a custom face image from settings drawer
+      const customFaceInput = document.getElementById('customFaceInput');
+      customFaceInput.addEventListener('change', function (e) {
+        const file = e.target.files && e.target.files[0];
+        if (file) {
+          const url = URL.createObjectURL(file);
+          userFaceImg.src = url;
+          hasLoadedFaceImg = true;
+          bowCanvas.style.display = 'block';
+          bowGifImg.style.display = 'none';
+        }
+      });
+
+      // Allow user to switch to bow.gif if they upload one
+      const customGifInput = document.getElementById('customGifInput');
+      customGifInput.addEventListener('change', function (e) {
+        const file = e.target.files && e.target.files[0];
+        if (file) {
+          bowGifImg.src = URL.createObjectURL(file);
+          bowCanvas.style.display = 'none';
+          bowGifImg.style.display = 'block';
+        }
+      });
+
+      const fxParticles = [];
+      const shockwaves = [];
+
+      // Physics state for chaotic 3D flying while kneeling & bowing
+      const flyer = {
+        x: 0,
+        y: 0,
+        z: 0,
+        vx: 4.6,
+        vy: -4.1,
+        vz: 2.8,
+        rotSpin: 0,
+        vRot: 0.09
+      };
+
+      function spawnBurst(x, y, count) {
+        for (let i = 0; i < count; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = Math.random() * 5 + 2;
+          fxParticles.push({
+            x,
+            y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed - 1.5,
+            life: 1,
+            decay: Math.random() * 0.025 + 0.015,
+            size: Math.random() * 5 + 3,
+            type: Math.random() < 0.5 ? 'gold' : 'sweat'
+          });
+        }
+      }
+
+      // Clicking the character gives an extra burst and advances the comedy cycle
+      bowCanvas.addEventListener('click', function () {
+        spawnBurst(bowCanvas.width / 2, bowCanvas.height / 2, 18);
+        startTime -= 3500;
+      });
+
+      const FOV = 440;
+      function project3D(x, y, z, cx, cy) {
+        const scale = FOV / Math.max(90, FOV + z);
+        return {
+          x: cx + x * scale,
+          y: cy + y * scale,
+          scale: scale
+        };
+      }
+
+      function rotatePoint(pt, rx, ry, rz) {
+        let { x, y, z } = pt;
+        if (rx !== 0) {
+          const cosX = Math.cos(rx), sinX = Math.sin(rx);
+          const y1 = y * cosX - z * sinX;
+          const z1 = y * sinX + z * cosX;
+          y = y1; z = z1;
+        }
+        if (ry !== 0) {
+          const cosY = Math.cos(ry), sinY = Math.sin(ry);
+          const x1 = x * cosY + z * sinY;
+          const z1 = -x * sinY + z * cosY;
+          x = x1; z = z1;
+        }
+        if (rz !== 0) {
+          const cosZ = Math.cos(rz), sinZ = Math.sin(rz);
+          const x1 = x * cosZ - y * sinZ;
+          const y1 = x * sinZ + y * cosZ;
+          x = x1; y = y1;
+        }
+        return { x, y, z };
+      }
+
+      function draw3DSphere(x, y, z, radius, colorMain, colorHighlight, cx, cy) {
+        const p = project3D(x, y, z, cx, cy);
+        const r = Math.max(1, radius * p.scale);
+        const grad = ctx.createRadialGradient(
+          p.x - r * 0.3,
+          p.y - r * 0.3,
+          r * 0.1,
+          p.x,
+          p.y,
+          r
+        );
+        grad.addColorStop(0, colorHighlight);
+        grad.addColorStop(1, colorMain);
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+        ctx.fill();
+        return p;
+      }
+
+      function draw3DLimb(p1, p2, thickness, color, cx, cy) {
+        const a = project3D(p1.x, p1.y, p1.z, cx, cy);
+        const b = project3D(p2.x, p2.y, p2.z, cx, cy);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = Math.max(2, thickness * ((a.scale + b.scale) * 0.5));
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.stroke();
+        return { a, b };
+      }
+
+      // Draw detailed full-sleeve tattoo pattern on the left arm (matching images(1).jpg)
+      function drawTattooSleeveLimb(p1, p2, thickness, cx, cy) {
+        // Base skin tone
+        const { a, b } = draw3DLimb(p1, p2, thickness, '#d99e73', cx, cy);
+        const avgScale = (a.scale + b.scale) * 0.5;
+        const w = Math.max(2, thickness * avgScale);
+
+        // Intricate dark-ink floral/cloud tattoo shading along the arm
+        ctx.save();
+        ctx.strokeStyle = 'rgba(38, 44, 52, 0.72)';
+        ctx.lineWidth = w * 0.86;
+        ctx.lineCap = 'round';
+        ctx.setLineDash([4 * avgScale, 3.5 * avgScale, 7 * avgScale, 3 * avgScale]);
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.stroke();
+
+        // Secondary ink highlight
+        ctx.strokeStyle = 'rgba(20, 24, 30, 0.55)';
+        ctx.lineWidth = w * 0.45;
+        ctx.setLineDash([2 * avgScale, 4 * avgScale]);
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Draw the iconic character head from "images(1).jpg":
+      // White curved-brim cap, dark aviator sunglasses with silver/gold frame,
+      // cool thin mustache, diamond ear stud, and expressive begging/apology sweat & tears!
+      function drawIconicHead(headCenter, bowAngle, bodyRoll, bodyYaw, phase, cx, cy) {
+        const hp = project3D(headCenter.x, headCenter.y, headCenter.z, cx, cy);
+        const s = hp.scale;
+        const headR = 30 * s;
+
+        ctx.save();
+        ctx.translate(hp.x, hp.y);
+        ctx.rotate(bodyRoll * 0.55 + Math.sin(bodyYaw) * 0.12);
+
+        // 1. Neck & Chin shadow
+        ctx.fillStyle = '#c58659';
+        ctx.beginPath();
+        ctx.arc(0, 4 * s, headR * 0.95, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 2. Ears + Sparkling Ear Stud on Left Ear (viewer's left, just like images(1).jpg)
+        ctx.fillStyle = '#dca074';
+        ctx.beginPath();
+        ctx.ellipse(-headR * 0.95, 2 * s, 5.5 * s, 9 * s, -0.15, 0, Math.PI * 2);
+        ctx.ellipse(headR * 0.95, 2 * s, 5.5 * s, 9 * s, 0.15, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Shiny earring stud on viewer's left ear
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(-headR * 0.98, 8 * s, 2.5 * s, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#f0c040';
+        ctx.lineWidth = 1 * s;
+        ctx.stroke();
+
+        // 3. Sculpted Jawline & Face Skin (warm tan skin tone from photo)
+        const skinGrad = ctx.createRadialGradient(-6 * s, -6 * s, 3 * s, 0, 0, headR);
+        skinGrad.addColorStop(0, '#f3be96');
+        skinGrad.addColorStop(0.65, '#dfa174');
+        skinGrad.addColorStop(1, '#bd7e52');
+        ctx.fillStyle = skinGrad;
+        ctx.beginPath();
+        ctx.moveTo(-headR * 0.92, -8 * s);
+        ctx.quadraticCurveTo(-headR * 0.95, 16 * s, -12 * s, headR * 0.98);
+        ctx.quadraticCurveTo(0, headR * 1.08, 12 * s, headR * 0.98);
+        ctx.quadraticCurveTo(headR * 0.95, 16 * s, headR * 0.92, -8 * s);
+        ctx.quadraticCurveTo(0, -headR * 1.1, -headR * 0.92, -8 * s);
+        ctx.fill();
+
+        // If user loaded actual photo file, blend it softly inside face mask while keeping 3D cap & glasses on top
+        if (hasLoadedFaceImg) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(0, 0, headR * 0.92, 0, Math.PI * 2);
+          ctx.clip();
+          ctx.drawImage(userFaceImg, -headR, -headR, headR * 2, headR * 2);
+          ctx.restore();
+        }
+
+        // Shift facial features down slightly as character bows head forward
+        const pitchShift = Math.sin(bowAngle) * 7 * s;
+        ctx.translate(0, pitchShift);
+
+        // 4. Waterfall Tears of Apology / Gratitude streaming from behind the sunglasses!
+        if (phase >= 2) {
+          ctx.fillStyle = 'rgba(95, 208, 255, 0.85)';
+          const tearLen = (12 + phase * 4 + Math.sin(performance.now() * 0.03) * 4) * s;
+          ctx.beginPath();
+          ctx.roundRect(-17 * s, 0, 5 * s, tearLen, 3 * s);
+          ctx.roundRect(12 * s, 0, 5 * s, tearLen, 3 * s);
+          ctx.fill();
+        }
+
+        // 5. Iconic Dark Aviator / Square-Wire Sunglasses (exact vibe of images(1).jpg)
+        ctx.save();
+        // Left Lens
+        const lensGrad = ctx.createLinearGradient(-24 * s, -10 * s, -4 * s, 6 * s);
+        lensGrad.addColorStop(0, '#0a0b10');
+        lensGrad.addColorStop(0.5, '#1d222e');
+        lensGrad.addColorStop(1, '#08090c');
+        ctx.fillStyle = lensGrad;
+        ctx.strokeStyle = '#d8d8dc'; // Thin metallic silver-gold rim
+        ctx.lineWidth = 1.6 * s;
+
+        // Left aviator lens shape
+        ctx.beginPath();
+        ctx.roundRect(-24 * s, -9 * s, 20 * s, 14 * s, [3 * s, 3 * s, 6 * s, 5 * s]);
+        ctx.fill();
+        ctx.stroke();
+
+        // Right aviator lens shape
+        ctx.beginPath();
+        ctx.roundRect(4 * s, -9 * s, 20 * s, 14 * s, [3 * s, 3 * s, 5 * s, 6 * s]);
+        ctx.fill();
+        ctx.stroke();
+
+        // Double metallic nose bridge of the aviator sunglasses
+        ctx.beginPath();
+        ctx.moveTo(-4 * s, -7 * s);
+        ctx.lineTo(4 * s, -7 * s);
+        ctx.moveTo(-4 * s, -4 * s);
+        ctx.lineTo(4 * s, -4 * s);
+        // Temple arms going to ears
+        ctx.moveTo(-24 * s, -5 * s);
+        ctx.lineTo(-29 * s, -2 * s);
+        ctx.moveTo(24 * s, -5 * s);
+        ctx.lineTo(29 * s, -2 * s);
+        ctx.stroke();
+
+        // Glossy white diagonal reflection across sunglasses lenses
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.38)';
+        ctx.lineWidth = 2.2 * s;
+        ctx.beginPath();
+        ctx.moveTo(-20 * s, -6 * s);
+        ctx.lineTo(-13 * s, 2 * s);
+        ctx.moveTo(8 * s, -6 * s);
+        ctx.lineTo(15 * s, 2 * s);
+        ctx.stroke();
+        ctx.restore();
+
+        // 6. Nose & Nostrils
+        ctx.strokeStyle = '#a3653b';
+        ctx.lineWidth = 1.6 * s;
+        ctx.beginPath();
+        ctx.moveTo(0, -3 * s);
+        ctx.lineTo(-1.5 * s, 5 * s);
+        ctx.lineTo(2.5 * s, 5.5 * s);
+        ctx.stroke();
+
+        // 7. Signature Thin Mustache & Expressive Apologetic / Grateful Mouth
+        ctx.strokeStyle = '#33241b';
+        ctx.lineWidth = 2.2 * s;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(-11 * s, 10.5 * s);
+        ctx.quadraticCurveTo(0, 7.5 * s, 11 * s, 10.5 * s);
+        ctx.stroke();
+
+        // Mouth (shifts from cool slight pout in Phase 1 to dramatic begging/shouting thank you in Phase 3/4)
+        if (phase === 1) {
+          ctx.fillStyle = '#a64d43';
+          ctx.beginPath();
+          ctx.ellipse(0, 14 * s, 7 * s, 2.8 * s, 0, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          ctx.fillStyle = '#6e1b1b';
+          ctx.beginPath();
+          ctx.ellipse(0, 15 * s, (6 + phase * 1.3) * s, (3 + phase * 1.4) * s, 0, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Subtle chin soul-patch shadow
+        ctx.strokeStyle = 'rgba(51, 36, 27, 0.45)';
+        ctx.lineWidth = 1.5 * s;
+        ctx.beginPath();
+        ctx.moveTo(-3 * s, 21 * s);
+        ctx.lineTo(3 * s, 21 * s);
+        ctx.stroke();
+
+        // 8. Iconic Crisp White Curved-Brim Baseball Cap (worn slightly tilted like images(1).jpg)
+        ctx.translate(0, -pitchShift * 0.4);
+        // Cap dome
+        const capGrad = ctx.createLinearGradient(-headR, -headR * 1.2, headR, -8 * s);
+        capGrad.addColorStop(0, '#ffffff');
+        capGrad.addColorStop(0.7, '#f2efe9');
+        capGrad.addColorStop(1, '#d5d0c5');
+        ctx.fillStyle = capGrad;
+        ctx.beginPath();
+        ctx.arc(0, -9 * s, headR * 1.02, Math.PI * 0.96, Math.PI * 2.04);
+        ctx.fill();
+
+        // Cap curved visor / brim casting a cool shadow
+        ctx.fillStyle = '#e5e0d5';
+        ctx.strokeStyle = '#c9c2b4';
+        ctx.lineWidth = 1.5 * s;
+        ctx.beginPath();
+        ctx.moveTo(-headR * 1.04, -10 * s);
+        ctx.quadraticCurveTo(2 * s, -24 * s, headR * 1.18, -7 * s);
+        ctx.quadraticCurveTo(4 * s, -15 * s, -headR * 1.04, -10 * s);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.restore();
+        return hp;
+      }
+
+      function render3DBowingCharacter(now) {
+        const W = bowCanvas.width;
+        const H = bowCanvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        const elapsed = (now - startTime) / 1000;
+        const cycleTime = elapsed % 15.0;
+
+        // Seamless automatic progression through the 4 comedy stages:
+        // 1: Nodding + hand up thank you / sorry
+        // 2: Deep apologetic / grateful bow
+        // 3: Super hard rapid-fire headbanging bow on knees
+        // 4: Kneeling down + bowing super hard + flying randomly in 3D space!
+        let phase = 1;
+        if (cycleTime < 3.2) phase = 1;
+        else if (cycleTime < 6.5) phase = 2;
+        else if (cycleTime < 10.2) phase = 3;
+        else phase = 4;
+
+        let bowAngle = 0;
+        let headNod = 0;
+        let kneelAmount = 0;
+        let bodyYaw = Math.sin(elapsed * 1.2) * 0.26;
+        let bodyRoll = 0;
+        let offsetX = 0, offsetY = 0, offsetZ = 0;
+        let prayBounce = 0;
+
+        if (phase === 1) {
+          // Stage 1: Nodding head & raising clasped hands in apology / gratitude
+          bowAngle = 0.16 + Math.sin(elapsed * 6) * 0.12;
+          headNod = Math.sin(elapsed * 12) * 0.26;
+          prayBounce = Math.abs(Math.sin(elapsed * 9)) * 12;
+          flyer.x *= 0.85;
+          flyer.y *= 0.85;
+          flyer.z *= 0.85;
+        } else if (phase === 2) {
+          // Stage 2: Deep 90-degree dramatic bow
+          const wave = (Math.sin(elapsed * 5.0) + 1) * 0.5;
+          bowAngle = 0.22 + wave * 1.22;
+          headNod = wave * 0.35;
+          prayBounce = wave * 20;
+          flyer.x *= 0.85;
+          flyer.y *= 0.85;
+          flyer.z *= 0.85;
+        } else if (phase === 3) {
+          // Stage 3: Kneeling down & bowing SUPER HARD at ultra-speed
+          kneelAmount = 0.9;
+          const slam = Math.abs(Math.sin(elapsed * 32));
+          bowAngle = 0.92 + slam * 0.88;
+          headNod = 0.42;
+          prayBounce = slam * 26;
+          bodyYaw = Math.sin(elapsed * 9) * 0.42;
+
+          // Subtle stage impact vibration
+          offsetX = (Math.random() - 0.5) * 6;
+          offsetY = (Math.random() - 0.5) * 6;
+
+          if (Math.random() < 0.48) {
+            fxParticles.push({
+              x: W * 0.5 + (Math.random() - 0.5) * 75,
+              y: H * 0.54,
+              vx: (Math.random() - 0.5) * 9,
+              vy: -Math.random() * 7 - 2,
+              life: 1,
+              decay: 0.032,
+              size: Math.random() * 4.5 + 3,
+              type: Math.random() < 0.5 ? 'sweat' : 'gold'
+            });
+          }
+          if (Math.sin(elapsed * 32) > 0.92 && shockwaves.length < 4) {
+            shockwaves.push({ x: W * 0.5, y: H * 0.76, r: 12, alpha: 0.9 });
+          }
+        } else {
+          // Stage 4: Kneeling down + bowing super hard + flying randomly all over 3D space!
+          kneelAmount = 1.0;
+          const slam = Math.abs(Math.sin(elapsed * 44));
+          bowAngle = 1.0 + slam * 0.82;
+          headNod = 0.45;
+          prayBounce = slam * 28;
+
+          flyer.x += flyer.vx;
+          flyer.y += flyer.vy;
+          flyer.z += flyer.vz;
+          flyer.rotSpin += flyer.vRot;
+
+          if (flyer.x > 118 || flyer.x < -118) {
+            flyer.vx *= -1;
+            flyer.vRot = (Math.random() - 0.5) * 0.24;
+            spawnBurst(W / 2 + flyer.x, H / 2 + flyer.y, 8);
+          }
+          if (flyer.y > 95 || flyer.y < -115) {
+            flyer.vy *= -1;
+            spawnBurst(W / 2 + flyer.x, H / 2 + flyer.y, 8);
+          }
+          if (flyer.z > 90 || flyer.z < -90) {
+            flyer.vz *= -1;
+          }
+
+          offsetX = flyer.x;
+          offsetY = flyer.y;
+          offsetZ = flyer.z;
+          bodyYaw = elapsed * 4.8;
+          bodyRoll = Math.sin(elapsed * 6.8) * 0.95 + flyer.rotSpin;
+
+          for (let k = 0; k < 2; k++) {
+            fxParticles.push({
+              x: W * 0.5 + offsetX + (Math.random() - 0.5) * 22,
+              y: H * 0.58 + offsetY + (Math.random() - 0.5) * 22,
+              vx: -flyer.vx * 0.5 + (Math.random() - 0.5) * 3,
+              vy: -flyer.vy * 0.5 + (Math.random() - 0.5) * 3,
+              life: 1,
+              decay: 0.04,
+              size: Math.random() * 7 + 4,
+              type: 'flame'
+            });
+          }
+        }
+
+        const cx = W * 0.5 + offsetX;
+        const cy = H * 0.56 + offsetY;
+
+        // Golden Podium Ring & Dynamic Floor Shadow
+        ctx.save();
+        ctx.strokeStyle = 'rgba(240, 192, 64, 0.22)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.ellipse(W * 0.5, H * 0.80, 115, 28, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        const shadowScale = Math.max(0.25, 1 - Math.abs(offsetY) / 180);
+        ctx.fillStyle = `rgba(0, 0, 0, ${0.48 * shadowScale})`;
+        ctx.beginPath();
+        ctx.ellipse(W * 0.5 + offsetX * 0.7, H * 0.80, 54 * shadowScale, 15 * shadowScale, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // Shockwaves
+        for (let i = shockwaves.length - 1; i >= 0; i--) {
+          const sw = shockwaves[i];
+          sw.r += 4.8;
+          sw.alpha -= 0.036;
+          if (sw.alpha <= 0) {
+            shockwaves.splice(i, 1);
+            continue;
+          }
+          ctx.strokeStyle = `rgba(240, 192, 64, ${sw.alpha.toFixed(2)})`;
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.ellipse(sw.x, sw.y, sw.r, sw.r * 0.3, 0, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
+        // 3D Skeleton Coordinates
+        const hipY = kneelAmount * 44;
+        const hipCenter = { x: 0, y: hipY, z: 0 };
+        const hipLeft = { x: -19, y: hipY, z: 0 };
+        const hipRight = { x: 19, y: hipY, z: 0 };
+
+        // Legs (kneeling down when kneelAmount -> 1)
+        const kneeLeft = {
+          x: -21,
+          y: hipY + (1 - kneelAmount * 0.45) * 42,
+          z: -kneelAmount * 30
+        };
+        const kneeRight = {
+          x: 21,
+          y: hipY + (1 - kneelAmount * 0.45) * 42,
+          z: -kneelAmount * 30
+        };
+        const footLeft = {
+          x: -21,
+          y: hipY + (1 - kneelAmount * 0.5) * 82,
+          z: kneelAmount * 38
+        };
+        const footRight = {
+          x: 21,
+          y: hipY + (1 - kneelAmount * 0.5) * 82,
+          z: kneelAmount * 38
+        };
+
+        const spineLen = 70;
+        const neckLocal = rotatePoint({ x: 0, y: -spineLen, z: 0 }, -bowAngle, 0, 0);
+        const neck = {
+          x: hipCenter.x + neckLocal.x,
+          y: hipCenter.y + neckLocal.y,
+          z: hipCenter.z + neckLocal.z
+        };
+
+        const shLeftLocal = rotatePoint({ x: -30, y: -spineLen + 9, z: 0 }, -bowAngle, 0, 0);
+        const shRightLocal = rotatePoint({ x: 30, y: -spineLen + 9, z: 0 }, -bowAngle, 0, 0);
+        const shoulderLeft = {
+          x: hipCenter.x + shLeftLocal.x,
+          y: hipCenter.y + shLeftLocal.y,
+          z: hipCenter.z + shLeftLocal.z
+        };
+        const shoulderRight = {
+          x: hipCenter.x + shRightLocal.x,
+          y: hipCenter.y + shRightLocal.y,
+          z: hipCenter.z + shRightLocal.z
+        };
+
+        // Clasped Apology / Thank-You Hands in front
+        const handsLocal = rotatePoint(
+          { x: 0, y: -spineLen - 10 - prayBounce, z: -52 - prayBounce * 0.6 },
+          -bowAngle * 1.15,
+          0,
+          0
+        );
+        const claspedHands = {
+          x: hipCenter.x + handsLocal.x,
+          y: hipCenter.y + handsLocal.y,
+          z: hipCenter.z + handsLocal.z
+        };
+
+        const elbowLeftLocal = rotatePoint({ x: -36, y: -spineLen + 28, z: -28 }, -bowAngle, 0, 0);
+        const elbowRightLocal = rotatePoint({ x: 36, y: -spineLen + 28, z: -28 }, -bowAngle, 0, 0);
+        const elbowLeft = {
+          x: hipCenter.x + elbowLeftLocal.x,
+          y: hipCenter.y + elbowLeftLocal.y,
+          z: hipCenter.z + elbowLeftLocal.z
+        };
+        const elbowRight = {
+          x: hipCenter.x + elbowRightLocal.x,
+          y: hipCenter.y + elbowRightLocal.y,
+          z: hipCenter.z + elbowRightLocal.z
+        };
+
+        // Gold Chain Pendant point (swings forward enthusiastically as character bows!)
+        const chainDropLocal = rotatePoint(
+          { x: 0, y: -spineLen + 36, z: -24 - Math.sin(bowAngle) * 25 },
+          -bowAngle * 1.25,
+          0,
+          0
+        );
+        const chainPendant = {
+          x: hipCenter.x + chainDropLocal.x,
+          y: hipCenter.y + chainDropLocal.y,
+          z: hipCenter.z + chainDropLocal.z
+        };
+
+        const headLocal = rotatePoint({ x: 0, y: -32, z: 0 }, -(bowAngle + headNod), 0, 0);
+        const headCenter = {
+          x: neck.x + headLocal.x,
+          y: neck.y + headLocal.y,
+          z: neck.z + headLocal.z
+        };
+
+        function xform(pt) {
+          const r = rotatePoint(pt, 0, bodyYaw, bodyRoll);
+          return { x: r.x, y: r.y, z: r.z + offsetZ };
+        }
+
+        const H_C = xform(hipCenter);
+        const H_L = xform(hipLeft);
+        const H_R = xform(hipRight);
+        const K_L = xform(kneeLeft);
+        const K_R = xform(kneeRight);
+        const F_L = xform(footLeft);
+        const F_R = xform(footRight);
+        const N_K = xform(neck);
+        const S_L = xform(shoulderLeft);
+        const S_R = xform(shoulderRight);
+        const E_L = xform(elbowLeft);
+        const E_R = xform(elbowRight);
+        const HND = xform(claspedHands);
+        const CHN = xform(chainPendant);
+        const HD  = xform(headCenter);
+
+        // Ambient Golden Aura behind character
+        const torsoProj = project3D(N_K.x, N_K.y, N_K.z, cx, cy);
+        const auraGrad = ctx.createRadialGradient(
+          torsoProj.x, torsoProj.y, 10,
+          torsoProj.x, torsoProj.y, 105 * torsoProj.scale
+        );
+        auraGrad.addColorStop(0, phase >= 3 ? 'rgba(255, 215, 70, 0.42)' : 'rgba(240, 192, 64, 0.2)');
+        auraGrad.addColorStop(1, 'rgba(240, 192, 64, 0)');
+        ctx.fillStyle = auraGrad;
+        ctx.beginPath();
+        ctx.arc(torsoProj.x, torsoProj.y, 105 * torsoProj.scale, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 1. Draw Dark Streetwear Jeans & Crisp White Sneakers
+        draw3DLimb(H_L, K_L, 16, '#181a2e', cx, cy);
+        draw3DLimb(K_L, F_L, 14, '#121424', cx, cy);
+        draw3DLimb(H_R, K_R, 16, '#181a2e', cx, cy);
+        draw3DLimb(K_R, F_R, 14, '#121424', cx, cy);
+        draw3DSphere(F_L.x, F_L.y, F_L.z, 9.5, '#e6e6ec', '#ffffff', cx, cy);
+        draw3DSphere(F_R.x, F_R.y, F_R.z, 9.5, '#e6e6ec', '#ffffff', cx, cy);
+
+        // 2. Draw Crisp White T-Shirt Torso with Black Halftone Chest Graphic (matching images(1).jpg)
+        const torsoSeg = draw3DLimb(H_C, N_K, 38, '#f5f5f7', cx, cy);
+        draw3DLimb(S_L, S_R, 22, '#ffffff', cx, cy);
+
+        // Black graphic chest print on the white T-shirt
+        const midChestX = (torsoSeg.a.x * 0.38 + torsoSeg.b.x * 0.62);
+        const midChestY = (torsoSeg.a.y * 0.38 + torsoSeg.b.y * 0.62);
+        const chestScale = (torsoSeg.a.scale + torsoSeg.b.scale) * 0.5;
+        ctx.save();
+        ctx.translate(midChestX, midChestY);
+        ctx.rotate(bodyRoll);
+        ctx.fillStyle = '#14151a';
+        ctx.beginPath();
+        ctx.roundRect(-13 * chestScale, -6 * chestScale, 11 * chestScale, 16 * chestScale, 2 * chestScale);
+        ctx.roundRect(2 * chestScale, -6 * chestScale, 11 * chestScale, 16 * chestScale, 2 * chestScale);
+        ctx.fill();
+        // White halftone dot pattern inside black chest graphic
+        ctx.fillStyle = 'rgba(255,255,255,0.65)';
+        ctx.beginPath();
+        ctx.arc(-7 * chestScale, -1 * chestScale, 1.5 * chestScale, 0, Math.PI * 2);
+        ctx.arc(-7 * chestScale, 4 * chestScale, 1.5 * chestScale, 0, Math.PI * 2);
+        ctx.arc(7 * chestScale, -1 * chestScale, 1.5 * chestScale, 0, Math.PI * 2);
+        ctx.arc(7 * chestScale, 4 * chestScale, 1.5 * chestScale, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // 3. Draw Heavy Cuban Link Gold Chain Necklace (swings in 3D!)
+        const neckP = project3D(N_K.x, N_K.y, N_K.z, cx, cy);
+        const chainP = project3D(CHN.x, CHN.y, CHN.z, cx, cy);
+        ctx.save();
+        ctx.strokeStyle = '#f0c040';
+        ctx.lineWidth = Math.max(2.5, 4.2 * chainP.scale);
+        ctx.setLineDash([4 * chainP.scale, 2 * chainP.scale]);
+        ctx.beginPath();
+        ctx.moveTo(neckP.x - 10 * neckP.scale, neckP.y + 2 * neckP.scale);
+        ctx.quadraticCurveTo(chainP.x, chainP.y + 8 * chainP.scale, neckP.x + 10 * neckP.scale, neckP.y + 2 * neckP.scale);
+        ctx.stroke();
+        ctx.restore();
+        // Gold Medallion at bottom of chain
+        draw3DSphere(CHN.x, CHN.y, CHN.z, 6.5, '#d49b1f', '#fff5b8', cx, cy);
+
+        // 4. Draw Arms:
+        // Viewer's Left Arm (S_L): White T-shirt sleeve + Tan skin
+        draw3DLimb(S_L, {
+          x: (S_L.x + E_L.x) * 0.5,
+          y: (S_L.y + E_L.y) * 0.5,
+          z: (S_L.z + E_L.z) * 0.5
+        }, 16, '#f5f5f7', cx, cy);
+        draw3DLimb(S_L, E_L, 12.5, '#dfa174', cx, cy);
+        draw3DLimb(E_L, HND, 11.5, '#dfa174', cx, cy);
+
+        // Viewer's Right Arm (S_R): White T-shirt sleeve + Full-Sleeve Tattoo (matching images(1).jpg!)
+        drawTattooSleeveLimb(S_R, E_R, 13, cx, cy);
+        drawTattooSleeveLimb(E_R, HND, 12, cx, cy);
+        draw3DLimb(S_R, {
+          x: S_R.x * 0.65 + E_R.x * 0.35,
+          y: S_R.y * 0.65 + E_R.y * 0.35,
+          z: S_R.z * 0.65 + E_R.z * 0.35
+        }, 16.5, '#f5f5f7', cx, cy);
+
+        // 5. Draw Iconic Character Head (White Cap, Aviator Sunglasses, Mustache, Ear Stud)
+        drawIconicHead(HD, bowAngle, bodyRoll, bodyYaw, phase, cx, cy);
+
+        // 6. Draw Clasped Begging / Apologizing / Thanking Hands in Front
+        const handScreen = draw3DSphere(HND.x, HND.y, HND.z, 11.5, '#d99668', '#ffe0c2', cx, cy);
+
+        // Golden Gratitude / Apology Rays around Clasped Hands
+        if (phase >= 2) {
+          ctx.save();
+          ctx.strokeStyle = 'rgba(255, 228, 132, 0.75)';
+          ctx.lineWidth = 2;
+          for (let r = 0; r < 6; r++) {
+            const ang = elapsed * 6.5 + (r * Math.PI) / 3;
+            const r1 = 14 * handScreen.scale;
+            const r2 = (22 + phase * 3.5) * handScreen.scale;
+            ctx.beginPath();
+            ctx.moveTo(handScreen.x + Math.cos(ang) * r1, handScreen.y + Math.sin(ang) * r1);
+            ctx.lineTo(handScreen.x + Math.cos(ang) * r2, handScreen.y + Math.sin(ang) * r2);
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+
+        // 7. Render FX Particles (Sweat drops, Gold sparks, Rocket flames)
+        for (let i = fxParticles.length - 1; i >= 0; i--) {
+          const pt = fxParticles[i];
+          pt.x += pt.vx;
+          pt.y += pt.vy;
+          if (pt.type === 'sweat') pt.vy += 0.25;
+          pt.life -= pt.decay;
+          if (pt.life <= 0) {
+            fxParticles.splice(i, 1);
+            continue;
+          }
+          ctx.save();
+          ctx.globalAlpha = Math.max(0, pt.life);
+          if (pt.type === 'gold') {
+            ctx.fillStyle = '#ffe484';
+          } else if (pt.type === 'sweat') {
+            ctx.fillStyle = '#68d8ff';
+          } else {
+            ctx.fillStyle = pt.life > 0.5 ? '#ffdd55' : '#ff5522';
+          }
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, pt.size * pt.life, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+
+        requestAnimationFrame(render3DBowingCharacter);
+      }
+
+      requestAnimationFrame(render3DBowingCharacter);
+
+      /* ========================================================================
+         4. SETTINGS DRAWER INTERACTION
+         ======================================================================== */
+      const openSettingsBtn = document.getElementById('openSettingsBtn');
+      const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+      const settingsDrawer = document.getElementById('settingsDrawer');
+      const drawerBackdrop = document.getElementById('drawerBackdrop');
+
+      function toggleDrawer(isOpen) {
+        settingsDrawer.classList.toggle('open', isOpen);
+        drawerBackdrop.classList.toggle('open', isOpen);
+      }
+
+      openSettingsBtn.addEventListener('click', () => toggleDrawer(true));
+      closeSettingsBtn.addEventListener('click', () => toggleDrawer(false));
+      drawerBackdrop.addEventListener('click', () => toggleDrawer(false));
+
+      /* ========================================================================
+         5. SOUNDCLOUD EMBED PLAYER
+         ======================================================================== */
+      const inputSoundCloudUrl = document.getElementById('inputSoundCloudUrl');
+      const playSoundCloudBtn = document.getElementById('playSoundCloudBtn');
+      const scIframeContainer = document.getElementById('scIframeContainer');
+      const musicBar = document.getElementById('musicBar');
+      const musicToggleBtn = document.getElementById('musicToggleBtn');
+      const musicTrackLabel = document.getElementById('musicTrackLabel');
+
+      let isMusicPlaying = false;
+      let scIframe = null;
+
+      function embedSoundCloudTrack(trackUrl) {
+        const cleanUrl = (trackUrl || '').trim();
+        if (!cleanUrl) return;
+
+        const encoded = encodeURIComponent(cleanUrl);
+        const embedSrc = `https://w.soundcloud.com/player/?url=${encoded}&auto_play=true&hide_related=true&show_comments=false&show_user=false&show_reposts=false&visual=false`;
+
+        scIframeContainer.innerHTML = '';
+        scIframe = document.createElement('iframe');
+        scIframe.width = '100%';
+        scIframe.height = '166';
+        scIframe.scrolling = 'no';
+        scIframe.frameBorder = 'no';
+        scIframe.allow = 'autoplay';
+        scIframe.src = embedSrc;
+        scIframeContainer.appendChild(scIframe);
+
+        isMusicPlaying = true;
+        musicBar.classList.add('visible', 'playing');
+        musicToggleBtn.textContent = '⏸ Tạm dừng';
+
+        const slug = cleanUrl.split('/').filter(Boolean).pop() || 'SoundCloud Track';
+        musicTrackLabel.textContent = `SoundCloud: ${slug.replace(/-/g, ' ')}`;
+      }
+
+      playSoundCloudBtn.addEventListener('click', function () {
+        const url = inputSoundCloudUrl.value.trim();
+        if (url) {
+          embedSoundCloudTrack(url);
+        }
+      });
+
+      musicToggleBtn.addEventListener('click', function () {
+        if (!isMusicPlaying) {
+          const url = inputSoundCloudUrl.value.trim();
+          if (url && !scIframe) {
+            embedSoundCloudTrack(url);
+          } else if (scIframe && scIframe.contentWindow) {
+            scIframe.contentWindow.postMessage(JSON.stringify({ method: 'play' }), '*');
+            isMusicPlaying = true;
+            musicBar.classList.add('playing');
+            musicToggleBtn.textContent = '⏸ Tạm dừng';
+          }
+        } else {
+          isMusicPlaying = false;
+          musicBar.classList.remove('playing');
+          musicToggleBtn.textContent = '▶ Phát nhạc';
+          if (scIframe && scIframe.contentWindow) {
+            scIframe.contentWindow.postMessage(JSON.stringify({ method: 'pause' }), '*');
+          }
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

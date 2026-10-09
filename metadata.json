@@ -1,0 +1,6 @@
+{
+  "name": "Cinematic Thank You & Overdrive 3D Tribute",
+  "description": "A cinematic Hollywood-style Thank You tribute page with smooth scrolling end-credits, SoundCloud background music, and a hilarious escalating 3D bowing character animation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
