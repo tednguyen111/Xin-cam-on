@@ -1814,6 +1814,9 @@ Ngô Thanh J</textarea>
       closeSettingsBtn.addEventListener('click', () => toggleDrawer(false));
       drawerBackdrop.addEventListener('click', () => toggleDrawer(false));
 
+      // Auto-open drawer when user first lands on the page
+      setTimeout(() => toggleDrawer(true), 600);
+
       /* ========================================================================
          5. SOUNDCLOUD EMBED PLAYER
          ======================================================================== */
