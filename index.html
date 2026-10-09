@@ -835,12 +835,22 @@
     <div class="form-group">
       <label class="form-label">
         <span>4. Nhạc nền</span>
-        <span class="form-hint">Mặc định: Phụng Khánh Linh</span>
+        <span class="form-hint">Chọn hoặc upload nhạc của bạn</span>
       </label>
-      <label for="customAudioInput" class="btn-secondary" style="text-align:center; display:block; cursor:pointer;">
-        Thay nhạc khác (MP3 / M4A...)
-      </label>
-      <input type="file" id="customAudioInput" accept="audio/*" style="display:none;" />
+      <div style="display:flex; flex-direction:column; gap:0.4rem; margin-top:0.25rem;">
+        <label style="display:flex; align-items:center; gap:0.6rem; cursor:pointer; padding:0.55rem 0.75rem; border-radius:10px; border:1px solid rgba(240,192,64,0.25); background:rgba(8,9,22,0.5); transition:border-color 0.2s;" id="trackLabel0">
+          <input type="radio" name="trackSelect" value="0" checked style="accent-color:var(--gold-primary);" />
+          <span style="font-size:0.85rem; color:var(--text-white);">Cảm ơn người đã thức cùng tôi</span>
+        </label>
+        <label style="display:flex; align-items:center; gap:0.6rem; cursor:pointer; padding:0.55rem 0.75rem; border-radius:10px; border:1px solid rgba(240,192,64,0.25); background:rgba(8,9,22,0.5); transition:border-color 0.2s;" id="trackLabel1">
+          <input type="radio" name="trackSelect" value="1" style="accent-color:var(--gold-primary);" />
+          <span style="font-size:0.85rem; color:var(--text-white);">Xin lỗi</span>
+        </label>
+        <label for="customAudioInput" class="btn-secondary" style="text-align:center; display:block; cursor:pointer; margin-top:0.25rem;">
+          Upload nhạc cá nhân (MP3 / M4A...)
+        </label>
+        <input type="file" id="customAudioInput" accept="audio/*" style="display:none;" />
+      </div>
     </div>
 
     <!-- Nút Share -->
@@ -1932,13 +1942,18 @@
       })();
 
       /* ========================================================================
-         5. HTML5 AUDIO PLAYER — Default track + upload replace, play on Oke
+      /* ========================================================================
+         5. HTML5 AUDIO PLAYER — 2 default tracks + upload, play on Oke
          ======================================================================== */
-      const DEFAULT_TRACK = 'cam-on-nguoi-da-thuc-cung-toi-phung-khanh-linh-official-lyrics-vid_8Sv0TSiR.mp3';
+      const TRACKS = [
+        { src: 'cam-on-nguoi-da-thuc-cung-toi-phung-khanh-linh-official-lyrics-vid_8Sv0TSiR.mp3', label: 'Cảm ơn người đã thức cùng tôi' },
+        { src: 'xin lỗi.mp3', label: 'Xin lỗi' }
+      ];
 
-      const audio = new Audio(DEFAULT_TRACK);
-      audio.loop = true;
+      const audio = new Audio(TRACKS[0].src);
+      audio.loop  = true;
       audio.volume = 0.85;
+      audio._trackName = TRACKS[0].label;
 
       const musicBar        = document.getElementById('musicBar');
       const musicToggleBtn  = document.getElementById('musicToggleBtn');
@@ -1947,6 +1962,36 @@
       const okBtn           = document.getElementById('okBtn');
 
       let isMusicPlaying = false;
+
+      // Highlight selected radio label
+      function updateTrackHighlight() {
+        document.querySelectorAll('[id^="trackLabel"]').forEach(el => {
+          el.style.borderColor = 'rgba(240,192,64,0.25)';
+        });
+        const checked = document.querySelector('input[name="trackSelect"]:checked');
+        if (checked) {
+          const lbl = checked.closest('label');
+          if (lbl) lbl.style.borderColor = 'var(--gold-primary)';
+        }
+      }
+      updateTrackHighlight();
+
+      // Radio change — switch track
+      document.querySelectorAll('input[name="trackSelect"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+          const idx = parseInt(this.value);
+          const wasPlaying = isMusicPlaying;
+          if (wasPlaying) pauseAudio();
+          audio.src = TRACKS[idx].src;
+          audio._trackName = TRACKS[idx].label;
+          audio.load();
+          updateTrackHighlight();
+          if (wasPlaying) audio.addEventListener('canplay', function onCanPlay() {
+            audio.removeEventListener('canplay', onCanPlay);
+            playAudio(audio._trackName);
+          });
+        });
+      });
 
       function playAudio(trackName) {
         audio.play().then(() => {
@@ -1976,8 +2021,12 @@
         audio.pause();
         audio.src = URL.createObjectURL(file);
         audio.load();
-        // Tên file hiển thị, bỏ extension
         audio._trackName = file.name.replace(/\.[^.]+$/, '');
+        // Deselect all radios when custom file is loaded
+        document.querySelectorAll('input[name="trackSelect"]').forEach(r => r.checked = false);
+        document.querySelectorAll('[id^="trackLabel"]').forEach(el => {
+          el.style.borderColor = 'rgba(240,192,64,0.25)';
+        });
       });
 
       // Oke button — phát nhạc TRƯỚC, đóng drawer SAU (browser gesture requirement)
