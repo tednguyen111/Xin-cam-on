@@ -2043,7 +2043,7 @@
 
       shareBtn.addEventListener('click', function () {
         const name  = document.getElementById('inputUserName').value.trim();
-        const names = document.getElementById('inputNamesList').value.trim();
+        const names = inputNamesList.value.trim();
         const title = document.getElementById('inputPageTitle').value.trim();
 
         const url = new URL(window.location.href.split('?')[0]);
