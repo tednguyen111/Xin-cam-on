@@ -1295,12 +1295,15 @@
         ctx.rotate(bodyRoll * 0.55 + Math.sin(bodyYaw) * 0.12);
 
         // 1. Neck & Chin shadow
+        if (!hideAccessories) {
         ctx.fillStyle = '#c58659';
         ctx.beginPath();
         ctx.arc(0, 4 * s, headR * 0.95, 0, Math.PI * 2);
         ctx.fill();
+        }
 
-        // 2. Ears + Sparkling Ear Stud on Left Ear (viewer's left, just like images(1).jpg)
+        // 2. Ears + Sparkling Ear Stud
+        if (!hideAccessories) {
         ctx.fillStyle = '#dca074';
         ctx.beginPath();
         ctx.ellipse(-headR * 0.95, 2 * s, 5.5 * s, 9 * s, -0.15, 0, Math.PI * 2);
@@ -1315,8 +1318,10 @@
         ctx.strokeStyle = '#f0c040';
         ctx.lineWidth = 1 * s;
         ctx.stroke();
+        }
 
-        // 3. Sculpted Jawline & Face Skin (warm tan skin tone from photo)
+        // 3. Sculpted Jawline & Face Skin
+        if (!hideAccessories) {
         const skinGrad = ctx.createRadialGradient(-6 * s, -6 * s, 3 * s, 0, 0, headR);
         skinGrad.addColorStop(0, '#f3be96');
         skinGrad.addColorStop(0.65, '#dfa174');
@@ -1329,6 +1334,7 @@
         ctx.quadraticCurveTo(headR * 0.95, 16 * s, headR * 0.92, -8 * s);
         ctx.quadraticCurveTo(0, -headR * 1.1, -headR * 0.92, -8 * s);
         ctx.fill();
+        }
 
         // If user loaded actual photo file, blend it softly inside face mask while keeping 3D cap & glasses on top
         if (hasLoadedFaceImg) {
@@ -1404,6 +1410,7 @@
         } // end !hideAccessories (sunglasses)
 
         // 6. Nose & Nostrils
+        if (!hideAccessories) {
         ctx.strokeStyle = '#a3653b';
         ctx.lineWidth = 1.6 * s;
         ctx.beginPath();
@@ -1411,6 +1418,7 @@
         ctx.lineTo(-1.5 * s, 5 * s);
         ctx.lineTo(2.5 * s, 5.5 * s);
         ctx.stroke();
+        }
 
         // 7. Mustache (hidden when user uploads photo) + Mouth
         if (!hideAccessories) {
@@ -1424,6 +1432,7 @@
         } // end !hideAccessories (mustache)
 
         // Mouth
+        if (!hideAccessories) {
         if (phase === 1) {
           ctx.fillStyle = '#a64d43';
           ctx.beginPath();
@@ -1443,6 +1452,7 @@
         ctx.moveTo(-3 * s, 21 * s);
         ctx.lineTo(3 * s, 21 * s);
         ctx.stroke();
+        } // end !hideAccessories (mouth)
 
         // 8. Baseball Cap (hidden when user uploads photo)
         if (!hideAccessories) {
