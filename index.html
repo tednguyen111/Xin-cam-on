@@ -1815,13 +1815,28 @@ Ngô Thanh J</textarea>
       // Auto-open drawer when user first lands on the page
       setTimeout(() => toggleDrawer(true), 600);
 
-      // Read URL params on load — pre-fill name if ?name= present
+      // Read URL params on load — pre-fill all fields if params present
       (function loadFromParams() {
         const params = new URLSearchParams(window.location.search);
+
         const nameParam = params.get('name');
         if (nameParam) {
           inputUserName.value = nameParam;
           userNameDisplay.textContent = nameParam;
+        }
+
+        const namesParam = params.get('names');
+        if (namesParam) {
+          const decoded = decodeURIComponent(namesParam);
+          inputNamesList.value = decoded;
+          updateCreditsRoll(decoded);
+        }
+
+        const titleParam = params.get('title');
+        if (titleParam) {
+          const decoded = decodeURIComponent(titleParam);
+          inputPageTitle.value = decoded;
+          pageTitleDisplay.textContent = decoded;
         }
       })();
 
@@ -1882,20 +1897,25 @@ Ngô Thanh J</textarea>
         setTimeout(() => toggleDrawer(false), 80);
       });
 
-      // Share button — copy URL with current name as param
+      // Share button — copy URL with all fields encoded as params
       const shareBtn      = document.getElementById('shareBtn');
       const shareFeedback = document.getElementById('shareFeedback');
 
       shareBtn.addEventListener('click', function () {
-        const name = document.getElementById('inputUserName').value.trim();
-        const url  = new URL(window.location.href.split('?')[0]);
-        if (name) url.searchParams.set('name', name);
+        const name  = document.getElementById('inputUserName').value.trim();
+        const names = document.getElementById('inputNamesList').value.trim();
+        const title = document.getElementById('inputPageTitle').value.trim();
+
+        const url = new URL(window.location.href.split('?')[0]);
+        if (name)  url.searchParams.set('name',  name);
+        if (names) url.searchParams.set('names', names);
+        if (title) url.searchParams.set('title', title);
+
         navigator.clipboard.writeText(url.toString()).then(() => {
           shareFeedback.textContent = '✅ Đã copy link!';
           shareFeedback.style.opacity = '1';
           setTimeout(() => { shareFeedback.style.opacity = '0'; }, 2500);
         }).catch(() => {
-          // fallback for browsers that block clipboard
           prompt('Copy link này:', url.toString());
         });
       });
