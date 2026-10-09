@@ -1125,12 +1125,15 @@
 
       // Allow user to pick a custom face image from settings drawer
       const customFaceInput = document.getElementById('customFaceInput');
+      let hideAccessories = false;
+
       customFaceInput.addEventListener('change', function (e) {
         const file = e.target.files && e.target.files[0];
         if (file) {
           const url = URL.createObjectURL(file);
           userFaceImg.src = url;
           hasLoadedFaceImg = true;
+          hideAccessories = true; // Remove cap, glasses, mustache so user photo shows clearly
           bowCanvas.style.display = 'block';
           bowGifImg.style.display = 'none';
         }
@@ -1283,8 +1286,7 @@
       // Draw the iconic character head from "images(1).jpg":
       // White curved-brim cap, dark aviator sunglasses with silver/gold frame,
       // cool thin mustache, diamond ear stud, and expressive begging/apology sweat & tears!
-      function drawIconicHead(headCenter, bowAngle, bodyRoll, bodyYaw, phase, cx, cy) {
-        const hp = project3D(headCenter.x, headCenter.y, headCenter.z, cx, cy);
+      function drawIconicHead(headCenter, bowAngle, bodyRoll, bodyYaw, phase, cx, cy) {        const hp = project3D(headCenter.x, headCenter.y, headCenter.z, cx, cy);
         const s = hp.scale;
         const headR = 30 * s;
 
@@ -1352,7 +1354,8 @@
           ctx.fill();
         }
 
-        // 5. Iconic Dark Aviator / Square-Wire Sunglasses (exact vibe of images(1).jpg)
+        // 5. Iconic Dark Aviator / Square-Wire Sunglasses
+        if (!hideAccessories) {
         ctx.save();
         // Left Lens
         const lensGrad = ctx.createLinearGradient(-24 * s, -10 * s, -4 * s, 6 * s);
@@ -1360,7 +1363,7 @@
         lensGrad.addColorStop(0.5, '#1d222e');
         lensGrad.addColorStop(1, '#08090c');
         ctx.fillStyle = lensGrad;
-        ctx.strokeStyle = '#d8d8dc'; // Thin metallic silver-gold rim
+        ctx.strokeStyle = '#d8d8dc';
         ctx.lineWidth = 1.6 * s;
 
         // Left aviator lens shape
@@ -1398,6 +1401,7 @@
         ctx.lineTo(15 * s, 2 * s);
         ctx.stroke();
         ctx.restore();
+        } // end !hideAccessories (sunglasses)
 
         // 6. Nose & Nostrils
         ctx.strokeStyle = '#a3653b';
@@ -1408,7 +1412,8 @@
         ctx.lineTo(2.5 * s, 5.5 * s);
         ctx.stroke();
 
-        // 7. Signature Thin Mustache & Expressive Apologetic / Grateful Mouth
+        // 7. Mustache (hidden when user uploads photo) + Mouth
+        if (!hideAccessories) {
         ctx.strokeStyle = '#33241b';
         ctx.lineWidth = 2.2 * s;
         ctx.lineCap = 'round';
@@ -1416,8 +1421,9 @@
         ctx.moveTo(-11 * s, 10.5 * s);
         ctx.quadraticCurveTo(0, 7.5 * s, 11 * s, 10.5 * s);
         ctx.stroke();
+        } // end !hideAccessories (mustache)
 
-        // Mouth (shifts from cool slight pout in Phase 1 to dramatic begging/shouting thank you in Phase 3/4)
+        // Mouth
         if (phase === 1) {
           ctx.fillStyle = '#a64d43';
           ctx.beginPath();
@@ -1438,7 +1444,8 @@
         ctx.lineTo(3 * s, 21 * s);
         ctx.stroke();
 
-        // 8. Iconic Crisp White Curved-Brim Baseball Cap (worn slightly tilted like images(1).jpg)
+        // 8. Baseball Cap (hidden when user uploads photo)
+        if (!hideAccessories) {
         ctx.translate(0, -pitchShift * 0.4);
         // Cap dome
         const capGrad = ctx.createLinearGradient(-headR, -headR * 1.2, headR, -8 * s);
@@ -1460,6 +1467,7 @@
         ctx.quadraticCurveTo(4 * s, -15 * s, -headR * 1.04, -10 * s);
         ctx.fill();
         ctx.stroke();
+        } // end !hideAccessories (cap)
 
         ctx.restore();
         return hp;
