@@ -769,6 +769,20 @@
     ⚙️
   </button>
 
+  <!-- Nút Quay Video — nằm cạnh ⚙️ -->
+  <button type="button" class="settings-fab" id="recordBtn" style="right: 88px;" title="Quay & tải video MP4">
+    🎬
+  </button>
+  <div id="recordFeedback" style="
+    position: fixed; bottom: 90px; right: 16px;
+    font-size: 0.75rem; color: var(--gold-light);
+    background: rgba(10,10,26,0.88); padding: 6px 12px;
+    border-radius: 8px; border: 1px solid rgba(240,192,64,0.25);
+    backdrop-filter: blur(8px); opacity: 0; transition: opacity 0.3s;
+    max-width: 220px; text-align: right; pointer-events: none;
+    z-index: 60;
+  "></div>
+
   <div class="drawer-backdrop" id="drawerBackdrop"></div>
 
   <aside class="settings-drawer" id="settingsDrawer" aria-label="Bảng tùy chỉnh lời cảm ơn">
@@ -848,11 +862,7 @@ Ngô Thanh J</textarea>
     </button>
     <div id="shareFeedback" style="font-size:0.75rem; color:var(--gold-light); text-align:center; height:1.2rem; transition: opacity 0.3s;"></div>
 
-    <!-- Nút Tải Video -->
-    <button type="button" class="btn-secondary" id="recordBtn" style="width:100%; margin-top:0.5rem; text-align:center; padding:0.75rem; font-size:0.9rem;">
-      🎬 Tải video MP4 (15 giây)
-    </button>
-    <div id="recordFeedback" style="font-size:0.75rem; color:var(--gold-light); text-align:center; min-height:1.2rem; transition: opacity 0.3s; margin-top:0.3rem;"></div>
+    <!-- Nút Tải Video — đã chuyển ra ngoài, cạnh nút ⚙️ -->
 
     <!-- Tùy chọn tải ảnh mặt nhân vật (images(1).jpg) hoặc bow.gif từ máy nếu muốn -->
     <div class="form-group" style="padding-top: 0.6rem; border-top: 1px solid rgba(240,192,64,0.16);">
@@ -1936,15 +1946,17 @@ Ngô Thanh J</textarea>
       recordBtn.addEventListener('click', async function () {
         recordFeedback.style.opacity = '1';
 
-        // Step 1: Ask user to share their screen/tab
+        // Step 1: Capture current tab directly (no picker dialog on Chrome)
         let displayStream;
         try {
           displayStream = await navigator.mediaDevices.getDisplayMedia({
-            video: { frameRate: 30, displaySurface: 'browser' },
+            preferCurrentTab: true,
+            video: { frameRate: 30 },
             audio: false
           });
         } catch (err) {
           recordFeedback.textContent = '❌ Bạn chưa cho phép quay màn hình.';
+          recordFeedback.style.opacity = '1';
           return;
         }
 
