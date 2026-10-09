@@ -2019,7 +2019,19 @@
           return;
         }
 
-        // Step 2: Record
+        // Step 2: Lock viewport height BEFORE Chrome's sharing bar appears
+        // This prevents the bar from pushing content up and squishing the layout
+        const captureHeight = window.innerHeight;
+        document.documentElement.style.cssText += ';height:' + captureHeight + 'px!important;overflow:hidden!important;';
+        document.body.style.cssText += ';height:' + captureHeight + 'px!important;overflow:hidden!important;';
+
+        // Hide floating UI buttons so they don't appear in recording
+        const hideEls = document.querySelectorAll('.settings-fab, .music-bar');
+        hideEls.forEach(el => el.style.setProperty('visibility', 'hidden', 'important'));
+
+        // Wait 900ms for Chrome's bar to inject + layout to fully stabilize
+        await new Promise(r => setTimeout(r, 900));
+
         recordBtn.disabled = true;
 
         const mimeType = MediaRecorder.isTypeSupported('video/mp4')
@@ -2044,7 +2056,15 @@
 
         await new Promise(r => { recorder.onstop = r; });
 
-        // Step 3: Download
+        // Step 3: Restore everything
+        document.documentElement.style.height = '';
+        document.documentElement.style.overflow = '';
+        document.body.style.height = '';
+        document.body.style.overflow = '';
+        hideEls.forEach(el => el.style.removeProperty('visibility'));
+        recordBtn.disabled = false;
+
+        // Step 4: Download
         const blob = new Blob(chunks, { type: mimeType });
         const url  = URL.createObjectURL(blob);
         const a    = document.createElement('a');
@@ -2052,8 +2072,6 @@
         a.download = 'xin-cam-on.mp4';
         a.click();
         URL.revokeObjectURL(url);
-
-        recordBtn.disabled = false;
       });
 
     })();
