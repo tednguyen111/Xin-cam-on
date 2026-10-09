@@ -7,13 +7,6 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Required headers for FFmpeg WASM (SharedArrayBuffer support)
-app.use((req, res, next) => {
-  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
-  res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
-  next();
-});
-
 app.use(express.static(path.join(__dirname)));
 
 app.listen(PORT, () => {

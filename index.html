@@ -1927,204 +1927,73 @@ Ngô Thanh J</textarea>
       });
 
       /* ========================================================================
-         6. VIDEO RECORD + FFMPEG WASM → MP4 DOWNLOAD
+         6. VIDEO RECORD — Screen capture via getDisplayMedia → MP4 download
          ======================================================================== */
       const recordBtn      = document.getElementById('recordBtn');
       const recordFeedback = document.getElementById('recordFeedback');
-
-      // Capture the full page as a single composited canvas stream
-      // We overlay bow3DCanvas on top of starfieldCanvas for the recording
       const RECORD_SECONDS = 15;
 
       recordBtn.addEventListener('click', async function () {
-        recordBtn.disabled = true;
-        recordBtn.textContent = '⏺ Đang quay... 0s';
         recordFeedback.style.opacity = '1';
-        recordFeedback.textContent = 'Đang quay màn hình — vui lòng chờ 15 giây...';
 
-        // Create an offscreen composite canvas matching viewport
-        const W = window.innerWidth;
-        const H = window.innerHeight;
-        const composite = document.createElement('canvas');
-        composite.width  = W;
-        composite.height = H;
-        const compCtx = composite.getContext('2d');
+        // Step 1: Ask user to share their screen/tab
+        let displayStream;
+        try {
+          displayStream = await navigator.mediaDevices.getDisplayMedia({
+            video: { frameRate: 30, displaySurface: 'browser' },
+            audio: false
+          });
+        } catch (err) {
+          recordFeedback.textContent = '❌ Bạn chưa cho phép quay màn hình.';
+          return;
+        }
 
-        // Grab streams from both canvases
-        const starCanvas = document.getElementById('starfieldCanvas');
-        const bow3D      = document.getElementById('bow3DCanvas');
+        // Step 2: Record
+        recordBtn.disabled = true;
+        recordBtn.textContent = `⏺ Đang quay... 0s`;
+        recordFeedback.textContent = 'Đang quay — giữ nguyên tab, đừng chuyển trang!';
 
-        // Record composite canvas at 30fps
-        const stream = composite.captureStream(30);
+        const mimeType = MediaRecorder.isTypeSupported('video/mp4')
+          ? 'video/mp4'
+          : MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+            ? 'video/webm;codecs=vp9'
+            : 'video/webm';
+
         const chunks = [];
-        const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
-          ? 'video/webm;codecs=vp9'
-          : 'video/webm';
-        const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 8000000 });
+        const recorder = new MediaRecorder(displayStream, {
+          mimeType,
+          videoBitsPerSecond: 8_000_000
+        });
 
         recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
 
-        // Composite draw loop — mirrors what's on screen
-        let frameId;
-        function drawFrame() {
-          // Background
-          compCtx.fillStyle = '#0a0a1a';
-          compCtx.fillRect(0, 0, W, H);
-
-          // Draw starfield canvas
-          try { compCtx.drawImage(starCanvas, 0, 0, W, H); } catch(e) {}
-
-          // Left panel background
-          compCtx.fillStyle = 'rgba(7,7,18,0.92)';
-          compCtx.fillRect(0, 0, W * 0.4, H);
-
-          // Draw bow3D canvas into left panel area
-          const stageEl = document.getElementById('stageContainer');
-          if (stageEl) {
-            const rect = stageEl.getBoundingClientRect();
-            try { compCtx.drawImage(bow3D, rect.left, rect.top, rect.width, rect.height); } catch(e) {}
-          }
-
-          // Right panel background
-          compCtx.fillStyle = 'rgba(13,14,36,0.97)';
-          compCtx.fillRect(W * 0.4, 0, W * 0.6, H);
-
-          // Separator line
-          compCtx.strokeStyle = 'rgba(240,192,64,0.16)';
-          compCtx.lineWidth = 1;
-          compCtx.beginPath();
-          compCtx.moveTo(W * 0.4, 0);
-          compCtx.lineTo(W * 0.4, H);
-          compCtx.stroke();
-
-          // Draw credits track (right panel) via html2canvas-lite approach:
-          // We replicate text from the DOM onto canvas
-          const track = document.getElementById('creditsTrack');
-          if (track) {
-            const trackRect = track.getBoundingClientRect();
-            const items = track.querySelectorAll('.credit-name');
-            const roles = track.querySelectorAll('.credit-role');
-            compCtx.save();
-            // Clip to right panel
-            compCtx.beginPath();
-            compCtx.rect(W * 0.4, 0, W * 0.6, H);
-            compCtx.clip();
-
-            items.forEach(function(el, i) {
-              const r = el.getBoundingClientRect();
-              if (r.top < -50 || r.top > H + 50) return;
-              compCtx.font = `600 ${Math.round(r.height * 1.1)}px "Playfair Display", serif`;
-              compCtx.fillStyle = '#f8f6f0';
-              compCtx.textAlign = 'center';
-              compCtx.shadowColor = 'rgba(240,192,64,0.22)';
-              compCtx.shadowBlur = 14;
-              compCtx.fillText(el.textContent, r.left + r.width / 2, r.top + r.height * 0.85);
-            });
-
-            roles.forEach(function(el) {
-              const r = el.getBoundingClientRect();
-              if (r.top < -50 || r.top > H + 50) return;
-              compCtx.font = `500 ${Math.round(r.height * 1.1)}px Inter, sans-serif`;
-              compCtx.fillStyle = 'rgba(240,192,64,0.72)';
-              compCtx.shadowBlur = 0;
-              compCtx.fillText(el.textContent, r.left + r.width / 2, r.top + r.height * 0.85);
-            });
-
-            compCtx.restore();
-          }
-
-          // Title
-          const titleEl = document.getElementById('pageTitleDisplay');
-          if (titleEl) {
-            const r = titleEl.getBoundingClientRect();
-            compCtx.save();
-            compCtx.font = `700 ${Math.round(r.height)}px "Playfair Display", serif`;
-            compCtx.fillStyle = '#f0c040';
-            compCtx.textAlign = 'center';
-            compCtx.shadowColor = 'rgba(240,192,64,0.35)';
-            compCtx.shadowBlur = 20;
-            compCtx.fillText(titleEl.textContent, r.left + r.width / 2, r.top + r.height * 0.85);
-            compCtx.restore();
-          }
-
-          // Name plate
-          const nameEl = document.getElementById('userNameDisplay');
-          if (nameEl) {
-            const r = nameEl.getBoundingClientRect();
-            compCtx.save();
-            compCtx.font = `700 ${Math.round(r.height * 1.1)}px "Playfair Display", serif`;
-            compCtx.fillStyle = '#ffe484';
-            compCtx.textAlign = 'center';
-            compCtx.shadowColor = 'rgba(240,192,64,0.55)';
-            compCtx.shadowBlur = 18;
-            compCtx.fillText(nameEl.textContent, r.left + r.width / 2, r.top + r.height * 0.85);
-            compCtx.restore();
-          }
-
-          frameId = requestAnimationFrame(drawFrame);
-        }
-
-        drawFrame();
         recorder.start(100);
 
-        // Count down
+        // Countdown
         let elapsed = 0;
         const ticker = setInterval(() => {
           elapsed++;
-          recordBtn.textContent = `⏺ Đang quay... ${elapsed}s`;
+          recordBtn.textContent = `⏺ Đang quay... ${elapsed}s / ${RECORD_SECONDS}s`;
           if (elapsed >= RECORD_SECONDS) clearInterval(ticker);
         }, 1000);
 
         await new Promise(r => setTimeout(r, RECORD_SECONDS * 1000));
+
         recorder.stop();
-        cancelAnimationFrame(frameId);
+        displayStream.getTracks().forEach(t => t.stop());
 
         await new Promise(r => { recorder.onstop = r; });
 
-        recordFeedback.textContent = '⚙️ Đang xử lý video...';
+        // Step 3: Download
+        const blob = new Blob(chunks, { type: mimeType });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href     = url;
+        a.download = 'xin-cam-on.mp4';
+        a.click();
+        URL.revokeObjectURL(url);
 
-        const webmBlob = new Blob(chunks, { type: mimeType });
-
-        // Use FFmpeg WASM to convert webm → mp4
-        try {
-          const { FFmpeg } = await import('https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js');
-          const { fetchFile, toBlobURL } = await import('https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/esm/index.js');
-
-          recordFeedback.textContent = '⚙️ Đang load FFmpeg (lần đầu ~5s)...';
-
-          const ffmpeg = new FFmpeg();
-          const baseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm';
-          await ffmpeg.load({
-            coreURL:   await toBlobURL(`${baseURL}/ffmpeg-core.js`,   'text/javascript'),
-            wasmURL:   await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
-          });
-
-          recordFeedback.textContent = '⚙️ Đang convert sang MP4...';
-          await ffmpeg.writeFile('input.webm', await fetchFile(webmBlob));
-          await ffmpeg.exec(['-i', 'input.webm', '-c:v', 'libx264', '-preset', 'fast', '-crf', '23', '-pix_fmt', 'yuv420p', 'output.mp4']);
-          const mp4Data = await ffmpeg.readFile('output.mp4');
-          const mp4Blob = new Blob([mp4Data.buffer], { type: 'video/mp4' });
-
-          const url = URL.createObjectURL(mp4Blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = 'xin-cam-on.mp4';
-          a.click();
-          URL.revokeObjectURL(url);
-
-          recordFeedback.textContent = '✅ Đã tải về xin-cam-on.mp4!';
-        } catch (err) {
-          // FFmpeg failed — fallback: download as webm renamed mp4
-          console.warn('FFmpeg WASM failed, falling back to webm:', err);
-          const url = URL.createObjectURL(webmBlob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = 'xin-cam-on.mp4';
-          a.click();
-          URL.revokeObjectURL(url);
-          recordFeedback.textContent = '✅ Đã tải về! (webm container, đổi tên .mp4)';
-        }
-
+        recordFeedback.textContent = '✅ Đã tải về xin-cam-on.mp4!';
         recordBtn.disabled = false;
         recordBtn.textContent = '🎬 Tải video MP4 (15 giây)';
         setTimeout(() => { recordFeedback.style.opacity = '0'; }, 4000);
