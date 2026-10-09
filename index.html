@@ -773,15 +773,6 @@
   <button type="button" class="settings-fab" id="recordBtn" style="right: 88px;" title="Quay & tải video MP4">
     🎬
   </button>
-  <div id="recordFeedback" style="
-    position: fixed; bottom: 90px; right: 16px;
-    font-size: 0.75rem; color: var(--gold-light);
-    background: rgba(10,10,26,0.88); padding: 6px 12px;
-    border-radius: 8px; border: 1px solid rgba(240,192,64,0.25);
-    backdrop-filter: blur(8px); opacity: 0; transition: opacity 0.3s;
-    max-width: 220px; text-align: right; pointer-events: none;
-    z-index: 60;
-  "></div>
 
   <div class="drawer-backdrop" id="drawerBackdrop"></div>
 
@@ -2012,11 +2003,9 @@
          6. VIDEO RECORD — Screen capture via getDisplayMedia → MP4 download
          ======================================================================== */
       const recordBtn      = document.getElementById('recordBtn');
-      const recordFeedback = document.getElementById('recordFeedback');
       const RECORD_SECONDS = 15;
 
       recordBtn.addEventListener('click', async function () {
-        recordFeedback.style.opacity = '1';
 
         // Step 1: Capture current tab directly (no picker dialog on Chrome)
         let displayStream;
@@ -2027,15 +2016,11 @@
             audio: false
           });
         } catch (err) {
-          recordFeedback.textContent = '❌ Bạn chưa cho phép quay màn hình.';
-          recordFeedback.style.opacity = '1';
           return;
         }
 
         // Step 2: Record
         recordBtn.disabled = true;
-        recordBtn.textContent = `⏺ Đang quay... 0s`;
-        recordFeedback.textContent = 'Đang quay — giữ nguyên tab, đừng chuyển trang!';
 
         const mimeType = MediaRecorder.isTypeSupported('video/mp4')
           ? 'video/mp4'
@@ -2050,16 +2035,7 @@
         });
 
         recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
-
         recorder.start(100);
-
-        // Countdown
-        let elapsed = 0;
-        const ticker = setInterval(() => {
-          elapsed++;
-          recordBtn.textContent = `⏺ Đang quay... ${elapsed}s / ${RECORD_SECONDS}s`;
-          if (elapsed >= RECORD_SECONDS) clearInterval(ticker);
-        }, 1000);
 
         await new Promise(r => setTimeout(r, RECORD_SECONDS * 1000));
 
@@ -2077,10 +2053,7 @@
         a.click();
         URL.revokeObjectURL(url);
 
-        recordFeedback.textContent = '✅ Đã tải về xin-cam-on.mp4!';
         recordBtn.disabled = false;
-        recordBtn.textContent = '🎬 Tải video MP4 (15 giây)';
-        setTimeout(() => { recordFeedback.style.opacity = '0'; }, 4000);
       });
 
     })();
